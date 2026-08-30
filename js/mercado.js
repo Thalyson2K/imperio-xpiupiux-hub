@@ -62,7 +62,8 @@ async function carregarFavoritos() {
   container.innerHTML = favoritos.map((favorito) => {
     const termo = favorito.termo_busca || favorito.termo;
     const preco = favorito.preco_maximo ?? favorito.preco;
-    return `<div class="bg-gray-800/70 p-2 rounded border border-gray-700 flex justify-between items-center text-xs"><div><strong class="text-amber-400">${termo}</strong>${preco ? `<span class="text-gray-400 block text-[10px]">Até ${preco} WCoins</span>` : ''}</div><button type="button" onclick="deletarFavorito('${favorito.id}')" class="text-red-400"><i class="fa-solid fa-trash-can"></i></button></div>`;
+    const moeda = favorito.moeda || favorito.moeda_pagamento || 'Qualquer';
+    return `<div class="bg-gray-800/70 p-2.5 rounded border border-gray-700 flex justify-between items-center text-xs mb-2"><div><strong class="text-amber-400 block">${termo}</strong><span class="text-gray-400 text-[10px]">Moeda: <b class="text-white">${moeda}</b> ${preco ? `| Máx: ${preco}` : ''}</span></div><button type="button" onclick="deletarFavorito('${favorito.id}')" class="text-red-400 hover:text-red-300 p-1"><i class="fa-solid fa-trash-can"></i></button></div>`;
   }).join('');
 }
 
@@ -70,15 +71,16 @@ async function criarFavorito(event) {
   event.preventDefault();
 
   const termo = document.getElementById('fav-termo')?.value.trim();
+  const moeda = document.getElementById('fav-moeda')?.value || 'Qualquer';
   const preco = document.getElementById('fav-preco')?.value ? Number(document.getElementById('fav-preco').value) : null;
   if (!termo) return;
 
-  const favorito = { id: Date.now(), nick_membro: obterNickUsuario(), termo_busca: termo, preco_maximo: preco, termo, preco };
+  const favorito = { id: Date.now(), nick_membro: obterNickUsuario(), termo_busca: termo, preco_maximo: preco, moeda, moeda_pagamento: moeda, termo, preco };
   let salvoNoBanco = false;
 
   if (window.db && typeof window.db.from === 'function') {
     try {
-      const { error } = await window.db.from('mercado_favoritos').insert([{ nick_membro: favorito.nick_membro, termo_busca: termo, preco_maximo: preco }]);
+      const { error } = await window.db.from('mercado_favoritos').insert([{ nick_membro: favorito.nick_membro, termo_busca: termo, preco_maximo: preco, moeda }]);
       salvoNoBanco = !error;
     } catch (error) {
       console.warn('Não foi possível salvar o alerta no Supabase.', error);
@@ -124,6 +126,15 @@ function normalizarItem(item) {
   };
 }
 
+function obterEstiloMoeda(moeda) {
+  const valor = moeda ? moeda.toUpperCase() : 'WC';
+  if (valor.includes('WC')) return 'text-amber-400 bg-amber-950/80 border-amber-600';
+  if (valor.includes('HP')) return 'text-purple-400 bg-purple-950/80 border-purple-600';
+  if (valor.includes('CREDIT')) return 'text-emerald-400 bg-emerald-950/80 border-emerald-600';
+  if (valor.includes('JOIA') || valor.includes('BLESS') || valor.includes('SOUL')) return 'text-cyan-400 bg-cyan-950/80 border-cyan-600';
+  return 'text-yellow-300 bg-yellow-950/80 border-yellow-600';
+}
+
 async function carregarItensMercado() {
   const tabela = document.getElementById('tabela-mercado');
   if (!tabela) return;
@@ -145,7 +156,7 @@ async function carregarItensMercado() {
     return;
   }
 
-  tabela.innerHTML = itens.map((item) => `<tr class="hover:bg-gray-800/50 border-b border-gray-800"><td class="p-3 font-bold text-white">${item.nome_item}</td><td class="p-3 text-xs text-gray-400">${item.categoria}</td><td class="p-3 font-bold text-amber-400">${item.preco} ${item.moeda}</td><td class="p-3 text-gray-300 text-xs">${item.vendedor}</td><td class="p-3 text-xs text-gray-500">${new Date(item.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</td><td class="p-3 text-center"><a href="${item.link_anuncio}" target="_blank" rel="noopener noreferrer" class="bg-amber-600 text-black font-bold text-xs px-2.5 py-1 rounded">Ver no Site</a></td></tr>`).join('');
+  tabela.innerHTML = itens.map((item) => `<tr class="hover:bg-gray-800/50 border-b border-gray-800 transition"><td class="p-3 font-bold text-white">${item.nome_item}</td><td class="p-3 text-xs text-gray-400">${item.categoria}</td><td class="p-3"><span class="px-2 py-0.5 rounded text-xs border font-bold ${obterEstiloMoeda(item.moeda)}">${item.preco} ${item.moeda}</span></td><td class="p-3 text-gray-300 text-xs">${item.vendedor}</td><td class="p-3 text-xs text-gray-500">${new Date(item.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</td><td class="p-3 text-center"><a href="${item.link_anuncio}" target="_blank" rel="noopener noreferrer" class="bg-amber-600 hover:bg-amber-700 text-black font-bold text-xs px-2.5 py-1 rounded transition">Ver no Site <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i></a></td></tr>`).join('');
 }
 
 async function verificarMatchFavorito(novoItem) {
@@ -164,7 +175,9 @@ async function verificarMatchFavorito(novoItem) {
   favoritos.forEach((favorito) => {
     const termo = favorito.termo_busca || favorito.termo || '';
     const preco = favorito.preco_maximo ?? favorito.preco;
-    if (item.nome_item.toLowerCase().includes(termo.toLowerCase()) && (!preco || Number(item.preco) <= Number(preco))) dispararAlerta(item);
+    const moeda = favorito.moeda || favorito.moeda_pagamento || 'Qualquer';
+    const bateuMoeda = moeda === 'Qualquer' || item.moeda.toUpperCase().includes(moeda.toUpperCase());
+    if (item.nome_item.toLowerCase().includes(termo.toLowerCase()) && bateuMoeda && (!preco || Number(item.preco) <= Number(preco))) dispararAlerta(item);
   });
 }
 

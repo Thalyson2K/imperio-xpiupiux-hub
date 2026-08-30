@@ -12,7 +12,7 @@
 
     <nav class="bg-gray-900 border-b border-red-900/40 px-6 py-4 flex justify-between items-center shadow-lg">
         <div class="flex items-center space-x-3">
-            <i class="fa-solid fa-cart-shopping text-amber-400 text-2xl"></i>
+            <i class="fa-solid fa-coins text-amber-400 text-2xl"></i>
             <span class="text-xl font-extrabold tracking-wider bg-gradient-to-r from-amber-400 to-red-500 bg-clip-text text-transparent">
                 MERCADO RADAR VIP
             </span>
@@ -31,7 +31,7 @@
     <main class="flex-1 container mx-auto p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div class="bg-gray-900 border border-gray-800 rounded-xl p-5 shadow-xl h-fit">
             <h2 class="text-lg font-bold text-amber-400 mb-3 border-b border-gray-800 pb-2 flex items-center">
-                <i class="fa-solid fa-star mr-2"></i> Meus Alertas de Compra
+                <i class="fa-solid fa-star mr-2"></i> Criar Alerta de Oferta
             </h2>
             <form id="form-favorito" class="space-y-3 mb-6">
                 <div>
@@ -39,22 +39,33 @@
                     <input type="text" id="fav-termo" required placeholder="Ex: Wing of Dragon" class="w-full bg-gray-800 border border-gray-700 rounded p-2 text-white text-sm focus:outline-none focus:border-amber-500">
                 </div>
                 <div>
+                    <label class="block text-xs font-semibold mb-1 text-gray-300">Moeda de Pagamento:</label>
+                    <select id="fav-moeda" class="w-full bg-gray-800 border border-gray-700 rounded p-2 text-white text-sm">
+                        <option value="Qualquer">Qualquer Moeda</option>
+                        <option value="WC">WC (WCoins)</option>
+                        <option value="HP">HP (Hunt Points)</option>
+                        <option value="CREDITOS">Créditos Web</option>
+                        <option value="ZEN">Zen</option>
+                        <option value="JOIAS">Joias</option>
+                    </select>
+                </div>
+                <div>
                     <label class="block text-xs font-semibold mb-1 text-gray-300">Preço Máximo Tolerado:</label>
                     <input type="number" id="fav-preco" placeholder="Ex: 500" class="w-full bg-gray-800 border border-gray-700 rounded p-2 text-white text-sm focus:outline-none focus:border-amber-500">
                 </div>
                 <button type="submit" class="w-full bg-gradient-to-r from-amber-600 to-amber-500 font-bold py-2 rounded text-sm text-black">
-                    <i class="fa-solid fa-plus mr-1"></i> Criar Alerta de Oferta
+                    <i class="fa-solid fa-plus mr-1"></i> Criar Alerta VIP
                 </button>
             </form>
 
-            <h3 class="text-xs uppercase font-bold text-gray-400 mb-2">Alertas Ativos:</h3>
+            <h3 class="text-xs uppercase font-bold text-gray-400 mb-2">Seus Alertas Ativos:</h3>
             <div id="lista-favoritos" class="space-y-2"></div>
         </div>
 
         <div class="bg-gray-900 border border-gray-800 rounded-xl p-5 shadow-xl lg:col-span-2">
             <div class="flex justify-between items-center mb-4 border-b border-gray-800 pb-3">
                 <h2 class="text-lg font-bold text-red-400 flex items-center">
-                    <i class="fa-solid fa-radar mr-2"></i> Feed de Ofertas do Mu Lotus
+                    <i class="fa-solid fa-radar mr-2"></i> Feed de Ofertas (WC / HP / Créditos)
                 </h2>
                 <button onclick="solicitarPermissaoNotificacao()" class="text-xs bg-gray-800 hover:bg-gray-700 text-amber-400 px-3 py-1.5 rounded border border-gray-700">
                     <i class="fa-solid fa-bell mr-1"></i> Ativar Som & Push
@@ -67,7 +78,7 @@
                         <tr>
                             <th class="p-3">Item</th>
                             <th class="p-3">Categoria</th>
-                            <th class="p-3">Preço</th>
+                            <th class="p-3">Valor / Moeda</th>
                             <th class="p-3">Vendedor</th>
                             <th class="p-3">Hora</th>
                             <th class="p-3 text-center">Ação</th>
