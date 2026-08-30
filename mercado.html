@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mercado Radar VIP - Império XPiuPiuX</title>
+    <title>Radar VIP de Desejos - Império XPiuPiuX</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/custom.css">
@@ -12,136 +12,47 @@
 <body class="bg-gray-950 text-gray-100 min-h-screen flex flex-col">
     <nav class="glass-panel sticky top-0 z-50 px-6 py-4 flex justify-between items-center border-b border-gray-800/80">
         <div class="flex items-center space-x-3">
-            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-600 to-red-600 flex items-center justify-center glow-amber">
-                <i class="fa-solid fa-store text-black text-xl font-black"></i>
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-red-600 via-amber-500 to-yellow-400 flex items-center justify-center glow-amber">
+                <i class="fa-solid fa-crosshairs text-black text-xl font-black"></i>
             </div>
             <div>
-                <span class="font-gamer text-2xl font-black tracking-wider bg-gradient-to-r from-amber-400 via-red-500 to-purple-400 bg-clip-text text-transparent">MERCADO RADAR VIP</span>
-                <span class="block text-[10px] text-gray-400 font-semibold tracking-widest uppercase">Mu Lotus Market Hub</span>
+                <span class="font-gamer text-2xl font-black tracking-wider bg-gradient-to-r from-amber-400 via-red-500 to-amber-300 bg-clip-text text-transparent">RADAR VIP DE DESEJOS</span>
+                <span class="block text-[10px] text-gray-400 font-semibold tracking-widest uppercase">Caçador de Ofertas Mu Lotus</span>
             </div>
         </div>
         <div id="header-nav" class="flex space-x-6 text-sm font-semibold"></div>
     </nav>
 
-    <div id="caixa-notificacao-topo" class="hidden bg-amber-500/10 border-b border-amber-500/30 px-6 py-3 text-amber-300 text-sm flex justify-between items-center backdrop-blur-md">
-        <div class="flex items-center space-x-3"><i class="fa-solid fa-bell text-amber-400 animate-bounce text-lg"></i><span id="texto-notificacao" class="font-semibold"></span></div>
-        <button onclick="document.getElementById('caixa-notificacao-topo').classList.add('hidden')" class="text-xs bg-amber-950/80 px-3 py-1 rounded-lg border border-amber-700/50 hover:bg-amber-900 transition">Fechar</button>
+    <div id="caixa-notificacao-topo" class="hidden bg-amber-500/10 border-b border-amber-500/30 px-6 py-3 text-amber-300 text-sm flex justify-between items-center backdrop-blur-md sticky top-[73px] z-40">
+        <div class="flex items-center space-x-3"><i class="fa-solid fa-crosshairs text-amber-400 animate-bounce text-xl"></i><span id="texto-notificacao" class="font-semibold"></span></div>
+        <button onclick="document.getElementById('caixa-notificacao-topo').classList.add('hidden')" class="text-xs bg-amber-950/80 px-3 py-1 rounded-lg border border-amber-700/50 hover:bg-amber-900 transition">Fechar Alerta</button>
     </div>
 
     <main class="flex-1 container mx-auto p-6 grid grid-cols-1 lg:grid-cols-4 gap-6">
-        <!DOCTYPE html>
-        <html lang="pt-BR" class="dark">
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Radar VIP de Desejos - Império XPiuPiuX</title>
-            <script src="https://cdn.tailwindcss.com"></script>
-            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-            <link rel="stylesheet" href="css/custom.css">
-            <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-        </head>
-        <body class="bg-gray-950 text-gray-100 min-h-screen flex flex-col">
-            <nav class="glass-panel sticky top-0 z-50 px-6 py-4 flex justify-between items-center border-b border-gray-800/80">
-                <div class="flex items-center space-x-3">
-                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-red-600 via-amber-500 to-yellow-400 flex items-center justify-center glow-amber"><i class="fa-solid fa-crosshairs text-black text-xl font-black"></i></div>
-                    <div><span class="font-gamer text-2xl font-black tracking-wider bg-gradient-to-r from-amber-400 via-red-500 to-amber-300 bg-clip-text text-transparent">RADAR VIP DE DESEJOS</span><span class="block text-[10px] text-gray-400 font-semibold tracking-widest uppercase">Caçador de Ofertas Mu Lotus</span></div>
-                </div>
-                <div id="header-nav" class="flex space-x-6 text-sm font-semibold"></div>
-            </nav>
-
-            <div id="caixa-notificacao-topo" class="hidden bg-amber-500/10 border-b border-amber-500/30 px-6 py-3 text-amber-300 text-sm flex justify-between items-center backdrop-blur-md sticky top-[73px] z-40">
-                <div class="flex items-center space-x-3"><i class="fa-solid fa-crosshairs text-amber-400 animate-bounce text-xl"></i><span id="texto-notificacao" class="font-semibold"></span></div>
-                <button onclick="document.getElementById('caixa-notificacao-topo').classList.add('hidden')" class="text-xs bg-amber-950/80 px-3 py-1 rounded-lg border border-amber-700/50 hover:bg-amber-900 transition">Fechar Alerta</button>
+        <div class="space-y-6">
+            <div class="glass-panel rounded-2xl p-5 shadow-2xl border-amber-500/20">
+                <h2 class="font-gamer text-xl font-extrabold text-amber-400 mb-3 border-b border-gray-800 pb-2 flex items-center"><i class="fa-solid fa-crosshairs mr-2 text-red-500"></i> Configurar Novo Radar</h2>
+                <p class="text-xs text-gray-400 mb-4">Cadastre o item que deseja comprar no Mu Lotus. O Radar avisa assim que ele aparecer no site!</p>
+                <form id="form-radar-desejo" class="space-y-3">
+                    <div><label class="block text-xs font-bold uppercase text-gray-300 mb-1">Item Desejado (Nome/Palavra)</label><input type="text" id="radar-termo" required placeholder="Ex: Wing of Dragon, Kundun Staff" class="w-full bg-gray-900/90 border border-gray-700/80 rounded-xl p-2.5 text-white text-sm focus:outline-none focus:border-amber-500 transition"></div>
+                    <div><label class="block text-xs font-bold uppercase text-gray-300 mb-1">Moeda Alvo</label><select id="radar-moeda" class="w-full bg-gray-900/90 border border-gray-700/80 rounded-xl p-2.5 text-amber-400 font-bold text-xs"><option value="Qualquer">Qualquer Moeda</option><option value="WC">🟡 WC (WCoins)</option><option value="HP">🟣 HP (Hunt Points)</option><option value="CREDITOS">🟢 Créditos Web</option><option value="ZEN">🟡 Zen</option></select></div>
+                    <div><label class="block text-xs font-bold uppercase text-gray-300 mb-1">Valor Máximo Tolerado</label><input type="number" id="radar-preco" placeholder="Ex: 500 (Deixe limpo para qualquer valor)" class="w-full bg-gray-900/90 border border-gray-700/80 rounded-xl p-2.5 text-white text-sm focus:outline-none focus:border-amber-500 transition"></div>
+                    <button type="submit" class="w-full bg-gradient-to-r from-amber-600 via-red-600 to-amber-500 hover:from-amber-700 hover:to-red-700 text-black font-extrabold py-3 rounded-xl transition shadow-lg glow-amber uppercase text-xs tracking-wider"><i class="fa-solid fa-crosshairs mr-1"></i> Ativar Radar de Caça</button>
+                </form>
             </div>
-
-            <main class="flex-1 container mx-auto p-6 grid grid-cols-1 lg:grid-cols-4 gap-6">
-                <div class="space-y-6">
-                    <div class="glass-panel rounded-2xl p-5 shadow-2xl border-amber-500/20">
-                        <h2 class="font-gamer text-xl font-extrabold text-amber-400 mb-3 border-b border-gray-800 pb-2 flex items-center"><i class="fa-solid fa-crosshairs mr-2 text-red-500"></i> Configurar Novo Radar</h2>
-                        <p class="text-xs text-gray-400 mb-4">Cadastre o item que deseja comprar no Mu Lotus. O Radar avisa assim que ele aparecer no site!</p>
-                        <form id="form-radar-desejo" class="space-y-3">
-                            <div><label class="block text-xs font-bold uppercase text-gray-300 mb-1">Item Desejado (Nome/Palavra)</label><input type="text" id="radar-termo" required placeholder="Ex: Wing of Dragon, Kundun Staff" class="w-full bg-gray-900/90 border border-gray-700/80 rounded-xl p-2.5 text-white text-sm focus:outline-none focus:border-amber-500 transition"></div>
-                            <div><label class="block text-xs font-bold uppercase text-gray-300 mb-1">Moeda Alvo</label><select id="radar-moeda" class="w-full bg-gray-900/90 border border-gray-700/80 rounded-xl p-2.5 text-amber-400 font-bold text-xs"><option value="Qualquer">Qualquer Moeda</option><option value="WC">🟡 WC (WCoins)</option><option value="HP">🟣 HP (Hunt Points)</option><option value="CREDITOS">🟢 Créditos Web</option><option value="ZEN">🟡 Zen</option></select></div>
-                            <div><label class="block text-xs font-bold uppercase text-gray-300 mb-1">Valor Máximo Tolerado</label><input type="number" id="radar-preco" placeholder="Ex: 500 (Deixe limpo para qualquer valor)" class="w-full bg-gray-900/90 border border-gray-700/80 rounded-xl p-2.5 text-white text-sm focus:outline-none focus:border-amber-500 transition"></div>
-                            <button type="submit" class="w-full bg-gradient-to-r from-amber-600 via-red-600 to-amber-500 hover:from-amber-700 hover:to-red-700 text-black font-extrabold py-3 rounded-xl transition shadow-lg glow-amber uppercase text-xs tracking-wider"><i class="fa-solid fa-crosshairs mr-1"></i> Ativar Radar de Caça</button>
-                        </form>
-                    </div>
-                    <div class="glass-panel rounded-2xl p-5 shadow-2xl">
-                        <h3 class="font-gamer text-lg font-bold text-gray-200 mb-3 border-b border-gray-800 pb-2 flex justify-between items-center"><span>Radars Ativos</span><span id="total-radars" class="text-xs bg-amber-950 text-amber-400 border border-amber-700/50 px-2 py-0.5 rounded-lg">0</span></h3>
-                        <div id="lista-radars-ativos" class="space-y-2 max-h-64 overflow-y-auto"></div>
-                    </div>
-                </div>
-
-                <div class="lg:col-span-3 space-y-4">
-                    <div class="glass-panel rounded-2xl p-4 flex flex-col sm:flex-row justify-between items-center gap-3"><div class="flex items-center space-x-3"><span class="relative flex h-3 w-3"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span><span class="relative inline-flex rounded-full h-3 w-3 bg-amber-500"></span></span><h2 class="font-gamer text-xl font-bold text-white tracking-wider uppercase">Achados no Radar (Site Mu Lotus)</h2></div><button onclick="solicitarPermissaoNotificacao()" class="text-xs bg-gray-900 hover:bg-gray-800 text-amber-400 font-bold px-3 py-2 rounded-xl border border-gray-700 transition flex items-center space-x-1.5"><i class="fa-solid fa-bell text-amber-400"></i><span>Ativar Alerta Sonoro & Push</span></button></div>
-                    <div id="grid-achados-radar" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4"></div>
-                </div>
-            </main>
-
-            <script src="js/supabase.js"></script><script src="js/session.js"></script><script src="js/config.js"></script><script src="js/mercado.js"></script>
-        </body>
-        </html>
-    <main class="flex-1 container mx-auto p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div class="bg-gray-900 border border-gray-800 rounded-xl p-5 shadow-xl h-fit">
-            <h2 class="text-lg font-bold text-amber-400 mb-3 border-b border-gray-800 pb-2 flex items-center">
-                <i class="fa-solid fa-star mr-2"></i> Criar Alerta de Oferta
-            </h2>
-            <form id="form-favorito" class="space-y-3 mb-6">
-                <div>
-                    <label class="block text-xs font-semibold mb-1 text-gray-300">Item Desejado:</label>
-                    <input type="text" id="fav-termo" required placeholder="Ex: Wing of Dragon" class="w-full bg-gray-800 border border-gray-700 rounded p-2 text-white text-sm focus:outline-none focus:border-amber-500">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold mb-1 text-gray-300">Moeda de Pagamento:</label>
-                    <select id="fav-moeda" class="w-full bg-gray-800 border border-gray-700 rounded p-2 text-white text-sm">
-                        <option value="Qualquer">Qualquer Moeda</option>
-                        <option value="WC">WC (WCoins)</option>
-                        <option value="HP">HP (Hunt Points)</option>
-                        <option value="CREDITOS">Créditos Web</option>
-                        <option value="ZEN">Zen</option>
-                        <option value="JOIAS">Joias</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold mb-1 text-gray-300">Preço Máximo Tolerado:</label>
-                    <input type="number" id="fav-preco" placeholder="Ex: 500" class="w-full bg-gray-800 border border-gray-700 rounded p-2 text-white text-sm focus:outline-none focus:border-amber-500">
-                </div>
-                <button type="submit" class="w-full bg-gradient-to-r from-amber-600 to-amber-500 font-bold py-2 rounded text-sm text-black">
-                    <i class="fa-solid fa-plus mr-1"></i> Criar Alerta VIP
-                </button>
-            </form>
-
-            <h3 class="text-xs uppercase font-bold text-gray-400 mb-2">Seus Alertas Ativos:</h3>
-            <div id="lista-favoritos" class="space-y-2"></div>
-        </div>
-
-        <div class="bg-gray-900 border border-gray-800 rounded-xl p-5 shadow-xl lg:col-span-2">
-            <div class="flex justify-between items-center mb-4 border-b border-gray-800 pb-3">
-                <h2 class="text-lg font-bold text-red-400 flex items-center">
-                    <i class="fa-solid fa-radar mr-2"></i> Feed de Ofertas (WC / HP / Créditos)
-                </h2>
-                <button onclick="solicitarPermissaoNotificacao()" class="text-xs bg-gray-800 hover:bg-gray-700 text-amber-400 px-3 py-1.5 rounded border border-gray-700">
-                    <i class="fa-solid fa-bell mr-1"></i> Ativar Som & Push
-                </button>
-            </div>
-
-            <div class="overflow-x-auto">
-                <table class="w-full text-left text-sm text-gray-300">
-                    <thead class="bg-gray-800/80 uppercase text-xs text-amber-400">
-                        <tr>
-                            <th class="p-3">Item</th>
-                            <th class="p-3">Categoria</th>
-                            <th class="p-3">Valor / Moeda</th>
-                            <th class="p-3">Vendedor</th>
-                            <th class="p-3">Hora</th>
-                            <th class="p-3 text-center">Ação</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tabela-mercado" class="divide-y divide-gray-800"></tbody>
-                </table>
+            <div class="glass-panel rounded-2xl p-5 shadow-2xl">
+                <h3 class="font-gamer text-lg font-bold text-gray-200 mb-3 border-b border-gray-800 pb-2 flex justify-between items-center"><span>Radars Ativos</span><span id="total-radars" class="text-xs bg-amber-950 text-amber-400 border border-amber-700/50 px-2 py-0.5 rounded-lg">0</span></h3>
+                <div id="lista-radars-ativos" class="space-y-2 max-h-64 overflow-y-auto"></div>
             </div>
         </div>
 
+        <div class="lg:col-span-3 space-y-4">
+            <div class="glass-panel rounded-2xl p-4 flex flex-col sm:flex-row justify-between items-center gap-3">
+                <div class="flex items-center space-x-3"><span class="relative flex h-3 w-3"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span><span class="relative inline-flex rounded-full h-3 w-3 bg-amber-500"></span></span><h2 class="font-gamer text-xl font-bold text-white tracking-wider uppercase">Achados no Radar (Site Mu Lotus)</h2></div>
+                <button onclick="solicitarPermissaoNotificacao()" class="text-xs bg-gray-900 hover:bg-gray-800 text-amber-400 font-bold px-3 py-2 rounded-xl border border-gray-700 transition flex items-center space-x-1.5"><i class="fa-solid fa-bell text-amber-400"></i><span>Ativar Alerta Sonoro & Push</span></button>
+            </div>
+            <div id="grid-achados-radar" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4"></div>
+        </div>
     </main>
 
     <script src="js/supabase.js"></script>
