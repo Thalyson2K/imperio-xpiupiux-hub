@@ -50,6 +50,25 @@ function estiloMoeda(moeda) {
   return 'text-yellow-300 bg-yellow-950/80 border-yellow-600';
 }
 
+function formatarNomeMoeda(moeda) {
+  const valor = String(moeda || 'WC').toUpperCase().trim();
+  if (['CREDITOS', 'CREDITO', 'CREDITS'].includes(valor)) return 'Créditos';
+  if (['WC', 'WCOIN', 'WCOINS'].includes(valor)) return 'WC';
+  if (['HP', 'HUNT'].includes(valor)) return 'HP';
+  if (valor === 'ZEN') return 'Zen';
+  return valor;
+}
+
+function testarMatchInteligente(nomeItem, termoBusca) {
+  if (!nomeItem || !termoBusca) return false;
+  const normalizar = (texto) => String(texto).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  const itemNormalizado = normalizar(nomeItem);
+  const termoNormalizado = normalizar(termoBusca);
+  if (itemNormalizado.includes(termoNormalizado)) return true;
+  const palavras = termoNormalizado.split(/\s+/).filter(Boolean).map((palavra) => palavra.replace(/s$/, ''));
+  return palavras.every((palavra) => palavra.length < 2 || itemNormalizado.includes(palavra));
+}
+
 function calcularAnalisePreco(nomeItem, precoAtual) {
   const nomeLower = String(nomeItem || '').toLowerCase();
   const precoNumerico = Number(precoAtual);
@@ -91,7 +110,7 @@ async function carregarHistoricoMedias() {
 }
 
 function normalizarItem(item) {
-  return { id: item.id || Date.now(), nome_item: item.nome_item || item.title || 'Item sem nome', categoria: item.categoria || item.category || 'Outros', preco: item.preco ?? item.price ?? 'A combinar', moeda: item.moeda || 'WC', vendedor: item.vendedor || item.seller || 'Anônimo', created_at: item.created_at || new Date().toISOString(), link_anuncio: item.link_anuncio || 'https://mulotus.net' };
+  return { id: item.id || Date.now(), nome_item: item.nome_item || item.title || 'Item sem nome', categoria: item.categoria || item.category || 'Outros', preco: item.preco ?? item.price ?? 'A combinar', moeda: formatarNomeMoeda(item.moeda || 'WC'), vendedor: item.vendedor || item.seller || 'Anônimo', created_at: item.created_at || new Date().toISOString(), link_anuncio: item.link_anuncio || 'https://mulotus.net' };
 }
 
 async function escanearMercadoMuLotus() {
@@ -205,7 +224,7 @@ function renderizarCards(itens) {
   const container = document.getElementById('grid-achados-radar') || document.getElementById('grid-mercado-cards');
   if (!container) return;
   const porMoeda = filtroMoedaSelecionada === 'TODAS' ? itens : itens.filter((item) => item.moeda === filtroMoedaSelecionada);
-  const filtrados = focoDesejo ? porMoeda.filter((item) => item.nome_item.toLowerCase().includes(focoDesejo.toLowerCase())) : porMoeda;
+  const filtrados = focoDesejo ? porMoeda.filter((item) => testarMatchInteligente(item.nome_item, focoDesejo)) : porMoeda;
   if (!filtrados.length) {
     container.innerHTML = '<div class="col-span-full text-center text-gray-500 border border-dashed border-gray-700 rounded-2xl p-8">Nenhum item anunciado nesta moeda.</div>';
     return;
@@ -215,7 +234,7 @@ function renderizarCards(itens) {
     const ehMatch = radarsDoUsuario.some((radar) => {
       const moeda = radar.moeda || 'Qualquer';
       const precoMaximo = radar.preco_maximo;
-      return item.nome_item.toLowerCase().includes(String(radar.termo_busca || '').toLowerCase())
+      return testarMatchInteligente(item.nome_item, radar.termo_busca)
         && (moeda === 'Qualquer' || item.moeda.toUpperCase().includes(moeda.toUpperCase()))
         && (!precoMaximo || Number(item.preco) <= Number(precoMaximo));
     });
@@ -394,7 +413,7 @@ async function verificarMatchEAnalisarPreco(novoItem) {
     const termo = favorito.termo_busca || favorito.termo || '';
     const moeda = favorito.moeda || 'Qualquer';
     const preco = favorito.preco_maximo ?? favorito.preco;
-    return item.nome_item.toLowerCase().includes(termo.toLowerCase())
+    return testarMatchInteligente(item.nome_item, termo)
       && (moeda === 'Qualquer' || item.moeda.toUpperCase().includes(moeda.toUpperCase()))
       && (!preco || Number(item.preco) <= Number(preco));
   });
