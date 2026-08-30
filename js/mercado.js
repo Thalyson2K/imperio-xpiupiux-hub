@@ -2,6 +2,8 @@ let usuarioLogado = null;
 let filtroMoedaSelecionada = 'TODAS';
 let historicoMedias = {};
 let radarsDoUsuario = [];
+let scannerTimer = null;
+const ultimosItensVistos = new Set();
 const FAVORITOS_LOCAL_KEY = 'mercado_alertas_vip';
 const ITENS_LOCAL_KEY = 'mercado_itens_vip';
 
@@ -86,6 +88,85 @@ async function carregarHistoricoMedias() {
 
 function normalizarItem(item) {
   return { id: item.id || Date.now(), nome_item: item.nome_item || item.title || 'Item sem nome', categoria: item.categoria || item.category || 'Outros', preco: item.preco ?? item.price ?? 'A combinar', moeda: item.moeda || 'WC', vendedor: item.vendedor || item.seller || 'Anônimo', created_at: item.created_at || new Date().toISOString(), link_anuncio: item.link_anuncio || 'https://mulotus.net' };
+}
+
+async function escanearMercadoMuLotus() {
+  const statusBox = document.getElementById('status-scanner-mulotus');
+  if (statusBox) statusBox.innerHTML = '<span class="text-amber-400 animate-pulse"><i class="fa-solid fa-spinner fa-spin mr-1"></i> Varrendo mulotus.net...</span>';
+
+  const urlAlvo = 'https://mulotus.net/market/items';
+  const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(urlAlvo)}`;
+  try {
+    const resposta = await fetch(proxyUrl);
+    if (!resposta.ok) throw new Error(`Proxy HTTP ${resposta.status}`);
+    const dados = await resposta.json();
+    if (dados?.contents) processarItensCapturadosDoSite(dados.contents);
+    if (statusBox) statusBox.innerHTML = '<span class="text-emerald-400 font-bold"><i class="fa-solid fa-circle text-[8px] mr-1"></i> Conectado em Tempo Real (mulotus.net)</span>';
+  } catch (error) {
+    console.warn('Proxy primário indisponível. Tentando rota alternativa.', error);
+    await tentarRotaAlternativaMuLotus(urlAlvo, statusBox);
+  }
+  carregarAchadosRadar();
+}
+
+async function tentarRotaAlternativaMuLotus(urlAlvo, statusBox) {
+  try {
+    const resposta = await fetch(`https://corsproxy.io/?${encodeURIComponent(urlAlvo)}`);
+    if (!resposta.ok) throw new Error(`Proxy alternativo HTTP ${resposta.status}`);
+    processarItensCapturadosDoSite(await resposta.text());
+    if (statusBox) statusBox.innerHTML = '<span class="text-emerald-400 font-bold"><i class="fa-solid fa-circle text-[8px] mr-1"></i> Conectado via Rota Secundária</span>';
+  } catch (error) {
+    console.warn('Rotas de leitura do Mu Lotus indisponíveis.', error);
+    if (statusBox) statusBox.innerHTML = '<span class="text-gray-400"><i class="fa-solid fa-crosshairs mr-1"></i> Radar Ativo (Aguardando novos anúncios)</span>';
+  }
+}
+
+async function processarItensCapturadosDoSite(conteudo) {
+  const itens = [];
+  try {
+    let lista = [];
+    if (typeof conteudo === 'object' || (typeof conteudo === 'string' && /^[\s]*[\[{]/.test(conteudo))) {
+      const dados = typeof conteudo === 'string' ? JSON.parse(conteudo) : conteudo;
+      lista = Array.isArray(dados) ? dados : (dados.items || dados.data || []);
+      lista.forEach((item) => itens.push(normalizarItem({ nome_item: item.name || item.nome || item.title, categoria: item.category || item.tipo || 'Equipamentos', preco: item.price ?? item.preco ?? item.cost ?? 0, moeda: item.currency || item.moeda || 'WC', vendedor: item.seller || item.vendedor || 'Player MuLotus', link_anuncio: 'https://mulotus.net/market/items' })));
+    } else {
+      const doc = new DOMParser().parseFromString(String(conteudo), 'text/html');
+      doc.querySelectorAll('.market-item, .card-item, tr.item-row, .item-card').forEach((card) => {
+        const nome = card.querySelector('.item-name, .title, td.name')?.textContent?.trim();
+        const precoTexto = card.querySelector('.item-price, .price, td.price')?.textContent?.trim();
+        if (!nome || !precoTexto) return;
+        const moedaTexto = precoTexto.toUpperCase();
+        const moeda = moedaTexto.includes('HP') ? 'HP' : moedaTexto.includes('CREDIT') ? 'CREDITOS' : moedaTexto.includes('ZEN') ? 'ZEN' : 'WC';
+        itens.push(normalizarItem({ nome_item: nome, categoria: 'Market', preco: Number(precoTexto.replace(/[^0-9.]/g, '')) || 0, moeda, vendedor: card.querySelector('.seller, td.seller')?.textContent?.trim() || 'Player MuLotus', link_anuncio: 'https://mulotus.net/market/items' }));
+      });
+    }
+  } catch (error) {
+    console.error('Erro ao interpretar itens capturados do Mu Lotus.', error);
+  }
+
+  for (const item of itens) {
+    if (!item.nome_item) continue;
+    const identificador = `${item.nome_item}_${item.preco}_${item.moeda}_${item.vendedor}`;
+    if (ultimosItensVistos.has(identificador)) continue;
+    ultimosItensVistos.add(identificador);
+
+    if (window.db && typeof window.db.from === 'function') {
+      try {
+        const { error } = await window.db.from('mercado_itens').insert([item]);
+        if (error) console.warn('Não foi possível salvar captura no Supabase.', error);
+      } catch (error) {
+        console.warn('Supabase indisponível para captura; salvando localmente.', error);
+        const itensLocais = locais(ITENS_LOCAL_KEY);
+        itensLocais.unshift(item);
+        salvarLocais(ITENS_LOCAL_KEY, itensLocais);
+      }
+    } else {
+      const itensLocais = locais(ITENS_LOCAL_KEY);
+      itensLocais.unshift(item);
+      salvarLocais(ITENS_LOCAL_KEY, itensLocais);
+    }
+    verificarMatchEAlerta(item);
+  }
 }
 
 async function buscarItens() {
@@ -247,7 +328,7 @@ function verificarMatchFavorito(item) {
   });
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   usuarioLogado = getUsuarioLogado();
   if (!usuarioLogado || (!usuarioLogado.acesso_mercado && !usuarioLogado.is_admin && usuarioLogado.role !== 'admin')) {
     alert('⛔ Acesso Restrito! Esta área é exclusiva para o Mercado VIP.');
@@ -255,12 +336,11 @@ document.addEventListener('DOMContentLoaded', () => {
     return;
   }
   renderHeaderNav();
-  carregarHistoricoMedias().then(async () => {
-    await carregarRadarsAtivos();
-    await carregarAchadosRadar();
-  });
+  await carregarHistoricoMedias();
+  await carregarRadarsAtivos();
+  await escanearMercadoMuLotus();
+  scannerTimer = setInterval(escanearMercadoMuLotus, 10000);
   document.getElementById('form-favorito')?.addEventListener('submit', criarFavorito);
-  document.getElementById('form-radar-desejo')?.addEventListener('submit', criarFavorito);
   document.getElementById('form-radar-desejo')?.addEventListener('submit', criarFavorito);
   document.getElementById('form-postar-item')?.addEventListener('submit', publicarItem);
   if (window.db && typeof window.db.channel === 'function') window.db.channel('mercado_realtime').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'mercado_itens' }, (payload) => { carregarItensMercadoCards(); verificarMatchEAnalisarPreco(payload.new); }).subscribe();
