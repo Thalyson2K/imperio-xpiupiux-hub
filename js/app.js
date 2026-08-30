@@ -21,9 +21,9 @@ function renderizarBotoesFiltro() {
 
     header.innerHTML = `
         <button onclick="filtrarCategoria('todos')" class="px-2.5 py-1 rounded text-xs font-bold transition ${categoriaAtual === 'todos' ? 'bg-red-600 text-white' : 'bg-gray-800 text-gray-400'}">Todos</button>
-        <button onclick="filtrarCategoria('boss')" class="px-2.5 py-1 rounded text-xs font-bold transition ${categoriaAtual === 'boss' ? 'bg-red-600 text-white' : 'bg-gray-800 text-gray-400'}">👑 Bosses Fase 2</button>
-        <button onclick="filtrarCategoria('miniboss')" class="px-2.5 py-1 rounded text-xs font-bold transition ${categoriaAtual === 'miniboss' ? 'bg-red-600 text-white' : 'bg-gray-800 text-gray-400'}">⚔️ Mini Bosses</button>
-        <button onclick="filtrarCategoria('evento')" class="px-2.5 py-1 rounded text-xs font-bold transition ${categoriaAtual === 'evento' ? 'bg-red-600 text-white' : 'bg-gray-800 text-gray-400'}">🏆 Eventos</button>
+        <button onclick="filtrarCategoria('todos')" class="px-3 py-1.5 rounded-xl text-xs font-bold transition font-gamer tracking-wider ${categoriaAtual === 'todos' ? 'bg-gradient-to-r from-red-600 to-amber-600 text-white shadow-lg' : 'bg-gray-800 text-gray-400 hover:bg-gray-700'}">Todos</button>
+        <button onclick="filtrarCategoria('invasao')" class="px-3 py-1.5 rounded-xl text-xs font-bold transition font-gamer tracking-wider ${categoriaAtual === 'invasao' ? 'bg-gradient-to-r from-red-600 to-amber-600 text-white shadow-lg' : 'bg-gray-800 text-gray-400 hover:bg-gray-700'}">⚔️ Invasões Mu Lotus</button>
+        <button onclick="filtrarCategoria('evento')" class="px-3 py-1.5 rounded-xl text-xs font-bold transition font-gamer tracking-wider ${categoriaAtual === 'evento' ? 'bg-gradient-to-r from-red-600 to-amber-600 text-white shadow-lg' : 'bg-gray-800 text-gray-400 hover:bg-gray-700'}">🏆 Eventos Diários</button>
     `;
 }
 
@@ -73,26 +73,24 @@ function carregarEventos() {
 
     filtrados.forEach((ev) => {
         const tempoRestante = calcularProximoSpawn(ev.horarios);
-        const corBadge = ev.categoria === 'boss'
-            ? 'bg-amber-950 border-amber-600 text-amber-400'
-            : ev.categoria === 'miniboss'
-                ? 'bg-purple-950 border-purple-600 text-purple-300'
-                : 'bg-red-950 border-red-800 text-red-300';
+        const corBadge = ev.categoria === 'invasao'
+            ? 'bg-amber-950 border-amber-600 text-amber-400 glow-amber'
+            : 'bg-red-950 border-red-800 text-red-300';
 
         const card = document.createElement('div');
-        card.className = 'bg-gray-800/60 border border-gray-700/60 p-4 rounded-xl flex flex-col justify-between shadow-lg';
+        card.className = 'glass-panel rounded-2xl p-4 flex flex-col justify-between shadow-xl transition hover:border-amber-500/40';
         card.innerHTML = `
             <div>
                 <div class="flex justify-between items-start mb-2">
-                    <span class="font-bold text-white text-base">${ev.nome}</span>
-                    <span class="text-[10px] px-2 py-0.5 rounded border uppercase font-bold ${corBadge}">${ev.categoria}</span>
+                    <span class="font-gamer font-bold text-white text-base">${ev.nome}</span>
+                    <span class="text-[10px] px-2.5 py-0.5 rounded-lg border uppercase font-extrabold ${corBadge}">${ev.categoria === 'invasao' ? 'INVASÃO' : 'EVENTO'}</span>
                 </div>
                 <p class="text-xs text-amber-400 font-semibold mb-1"><i class="fa-solid fa-location-dot mr-1"></i> Mapa: ${ev.mapa}</p>
                 <p class="text-xs text-gray-400 mb-2"><i class="fa-solid fa-gift mr-1"></i> Drop: ${ev.drop}</p>
             </div>
             <div class="mt-3 pt-2 border-t border-gray-700/50 flex justify-between items-center text-xs">
-                <span class="text-gray-400">Próximo Spawn:</span>
-                <span class="font-mono font-bold text-sm text-green-400 bg-gray-900 px-2 py-1 rounded border border-gray-700">⏱️ ${tempoRestante}</span>
+                <span class="text-gray-400 font-semibold">Próximo Spawn:</span>
+                <span class="font-mono font-bold text-sm text-green-400 bg-gray-950 px-2.5 py-1 rounded-xl border border-gray-800">⏱️ ${tempoRestante}</span>
             </div>
         `;
         container.appendChild(card);

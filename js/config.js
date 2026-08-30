@@ -4,6 +4,7 @@ const APP_CONFIG = {
   nomeHub: 'Império XPiuPiuX Hub',
   urlOficial: 'https://mulotus.net',
   urlMercado: 'https://mulotus.net/market/items',
+  urlInvasoes: 'https://mulotus.net/guide/invasoes',
   filters: ['Todos', 'Boss', 'Raid', 'Evento', 'VIP'],
   schedule: [
     { id: 1, title: 'Dark Lord', category: 'Boss', time: '19:00', map: 'Map 1', reward: 'Rune / Soul', status: 'Respawn em', color: 'red' },
@@ -28,17 +29,14 @@ const APP_CONFIG = {
     { id: 'ZEN', nome: 'Zen', cor: 'text-yellow-300 bg-yellow-950/80 border-yellow-600' }
   ],
   eventos: [
-    { nome: 'Kundun', categoria: 'boss', mapa: 'Kalima 7', drop: 'Sets Ancient, Box Kundun +5, +200 HP', horarios: ['00:00', '06:00', '12:00', '18:00'] },
-    { nome: 'Nightmare / Maya', categoria: 'boss', mapa: 'Kanturu Event (Fase 2)', drop: 'Armas Fase 2, Joias, +300 HP', horarios: ['04:00', '16:00'] },
-    { nome: 'Balgass (Crywolf Event)', categoria: 'boss', mapa: 'Crywolf Fortress', drop: 'Prevenção de Penúria, Joias Ancient', horarios: ['21:30'] },
-    { nome: 'Dark Iron Knight', categoria: 'boss', mapa: 'Lost Tower 7 / Dungeon 3', drop: 'Box Kundun +4/+5, +100 HP', horarios: ['03:00', '07:00', '11:00', '15:00', '19:00', '23:00'] },
-    { nome: 'Zaikan', categoria: 'miniboss', mapa: 'Tarkan 2', drop: 'Jewel of Soul/Life, Excelentes', horarios: ['01:00', '04:00', '07:00', '10:00', '13:00', '16:00', '19:00', '22:00'] },
-    { nome: 'Skeleton King', categoria: 'miniboss', mapa: 'Lorencia / Noria', drop: 'Box of Luck, Jewels', horarios: ['00:30', '02:30', '04:30', '06:30', '08:30', '10:30', '12:30', '14:30', '16:30', '18:30', '20:30', '22:30'] },
-    { nome: 'White Wizard & Orcs', categoria: 'miniboss', mapa: 'Devias / Noria / Lorencia', drop: "Wizard's Ring (+10% Dano), Joias", horarios: ['02:00', '06:00', '10:00', '14:00', '18:00', '22:00'] },
-    { nome: 'Invasão Dourada (Golden)', categoria: 'miniboss', mapa: 'Lorencia, Devias, Noria, Tarkan', drop: 'Box of Kundun +1 a +5', horarios: ['01:00', '03:00', '05:00', '07:00', '09:00', '11:00', '13:00', '15:00', '17:00', '19:00', '21:00', '23:00'] },
-    { nome: 'Red Dragon', categoria: 'miniboss', mapa: 'Lorencia / Noria / Devias', drop: 'Joias, WC e HP', horarios: ['11:30', '19:30'] },
+    { nome: 'Invasão Dourada (Golden Monsters)', categoria: 'invasao', mapa: 'Lorencia, Noria, Devias, Atlans, Tarkan', drop: 'Box of Kundun +1, +2, +3, +4, +5', horarios: ['01:00', '03:00', '05:00', '07:00', '09:00', '11:00', '13:00', '15:00', '17:00', '19:00', '21:00', '23:00'] },
+    { nome: 'Invasão Red Dragon (Dragão Vermelho)', categoria: 'invasao', mapa: 'Lorencia, Noria, Devias', drop: 'Joias, WCoins e HP', horarios: ['03:30', '07:30', '11:30', '15:30', '19:30', '23:30'] },
+    { nome: 'Invasão White Wizard & Orcs', categoria: 'invasao', mapa: 'Lorencia, Noria, Devias', drop: "Wizard's Ring (+10% Dano/Speed), Jewel of Bless", horarios: ['02:00', '06:00', '10:00', '14:00', '18:00', '22:00'] },
+    { nome: 'Invasão Skeleton King (Rei Esqueleto)', categoria: 'invasao', mapa: 'Lorencia, Noria', drop: 'Box of Luck, Jewel of Chaos/Bless', horarios: ['00:30', '02:30', '04:30', '06:30', '08:30', '10:30', '12:30', '14:30', '16:30', '18:30', '20:30', '22:30'] },
+    { nome: 'Invasão Cursed Wizard / Zaikan', categoria: 'invasao', mapa: 'Tarkan 2, Devias', drop: 'Jewel of Soul/Life, Itens Excelentes', horarios: ['01:30', '04:30', '07:30', '10:30', '13:30', '16:30', '19:30', '22:30'] },
+    { nome: 'Invasão Coelho Lunar', categoria: 'invasao', mapa: 'Lorencia, Noria', drop: 'Jewel of Creation, Zen', horarios: ['00:15', '06:15', '12:15', '18:15'] },
     { nome: 'Blood Castle', categoria: 'evento', mapa: 'Lorencia (Archangel)', drop: 'EXP Alta, Jewel of Chaos/Bless', horarios: ['01:00', '03:00', '05:00', '07:00', '09:00', '11:00', '13:00', '15:00', '17:00', '19:00', '21:00', '23:00'] },
-    { nome: 'Devil Square', categoria: 'evento', mapa: 'Noria (Charon)', drop: 'EXP Máxima da Fase 2', horarios: ['00:00', '02:00', '04:00', '06:00', '08:00', '10:00', '12:00', '14:00', '16:00', '18:00', '20:00', '22:00'] },
+    { nome: 'Devil Square', categoria: 'evento', mapa: 'Noria (Charon)', drop: 'EXP Máxima', horarios: ['00:00', '02:00', '04:00', '06:00', '08:00', '10:00', '12:00', '14:00', '16:00', '18:00', '20:00', '22:00'] },
     { nome: 'Chaos Castle', categoria: 'evento', mapa: 'Devias', drop: 'Sets Ancient, Jewel of Creation', horarios: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00'] },
     { nome: 'Castle Siege', categoria: 'evento', mapa: 'Valley of Loren', drop: 'Land of Trials / Senhor do Castelo', horarios: ['Domingo - 20:00'] }
   ]
