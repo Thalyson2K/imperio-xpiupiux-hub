@@ -34,9 +34,10 @@ const fallbackSupabase = {
 
 window.supabase = window.supabase || fallbackSupabase;
 
-if (window.supabase && typeof window.supabase.createClient === 'function' && SUPABASE_URL !== 'https://SUA_SUPABASE_URL.supabase.co' && SUPABASE_ANON_KEY !== 'SUA_SUPABASE_ANON_KEY') {
+if (window.supabase && typeof window.supabase.createClient === 'function' && !SUPABASE_URL.includes('SUA_') && !SUPABASE_ANON_KEY.includes('SUA_')) {
   window.supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 }
 
-window.db = window.supabase;
-window.supabaseClient = window.supabase;
+const db = window.supabase;
+window.db = db;
+window.supabaseClient = db;

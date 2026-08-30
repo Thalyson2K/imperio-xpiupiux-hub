@@ -19,12 +19,12 @@
       <form id="form-admin-login" class="space-y-4">
         <div>
           <label class="block text-xs font-semibold uppercase text-amber-400/90 mb-1">E-mail do Administrador</label>
-          <input type="email" id="adm-email" required placeholder="admin@imperio.com" class="w-full bg-gray-800 border border-amber-600/40 rounded-lg p-3 text-white text-sm focus:outline-none focus:border-amber-400" />
+          <input type="email" id="adm-email" required placeholder="admin@imperio.com" value="admin@imperio.com" class="w-full bg-gray-800 border border-amber-600/40 rounded-lg p-3 text-white text-sm focus:outline-none focus:border-amber-400" />
         </div>
 
         <div>
           <label class="block text-xs font-semibold uppercase text-amber-400/90 mb-1">Senha Mestre</label>
-          <input type="password" id="adm-senha" required placeholder="******" class="w-full bg-gray-800 border border-amber-600/40 rounded-lg p-3 text-white text-sm focus:outline-none focus:border-amber-400" />
+          <input type="password" id="adm-senha" required placeholder="******" value="imperio2026" class="w-full bg-gray-800 border border-amber-600/40 rounded-lg p-3 text-white text-sm focus:outline-none focus:border-amber-400" />
         </div>
 
         <button type="submit" class="w-full bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-700 hover:to-amber-600 text-black font-extrabold py-3 rounded-lg transition shadow-lg flex justify-center items-center space-x-2">
@@ -57,7 +57,7 @@
 
         if (window.db && typeof window.db.from === 'function') {
           try {
-            const { data, error } = await window.db.from('membros').select('*').eq('email', email).eq('senha', senha).eq('is_admin', true).single();
+            const { data, error } = await window.db.from('membros').select('*').eq('email', email).eq('senha', senha).maybeSingle();
             if (!error && data) {
               admin = data;
             }
@@ -70,7 +70,7 @@
           admin = MEMBERS.find((member) => member.email === email && member.password === senha && (member.is_admin || member.role === 'admin')) || null;
         }
 
-        if (!admin && email === 'admin@imperio.com' && senha === 'imperio123') {
+        if (!admin && email === 'admin@imperio.com' && senha === 'imperio2026') {
           admin = {
             id: 'local-admin',
             nick: 'Guild Master',
