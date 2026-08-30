@@ -63,11 +63,6 @@
     <script src="js/session.js"></script>
     <script src="js/auth.js"></script>
     <script>
-      function obterUsuarioLogado() {
-        const raw = localStorage.getItem('usuario_logado');
-        return raw ? JSON.parse(raw) : null;
-      }
-
       function carregarPendentes() {
         const tbody = document.getElementById('tabela-pendentes');
         if (!tbody) return;
@@ -134,14 +129,14 @@
       }
 
       document.addEventListener('DOMContentLoaded', () => {
-        const usuario = obterUsuarioLogado();
-        if (!usuario || !(usuario.is_admin || usuario.role === 'admin')) {
+        const usuario = typeof obterUsuarioLogado === 'function' ? obterUsuarioLogado() : null;
+
+        if (!usuario || !usuario.is_admin) {
           alert('⛔ Acesso Negado! Esta área é exclusiva para o Administrador.');
           window.location.href = 'admin-login.html';
           return;
         }
 
-        renderHeaderNav();
         carregarPendentes();
         carregarMembrosGestao();
       });
