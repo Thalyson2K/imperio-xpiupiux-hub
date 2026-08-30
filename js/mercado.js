@@ -1,228 +1,180 @@
 let usuarioLogado = null;
+let filtroMoedaSelecionada = 'TODAS';
 const FAVORITOS_LOCAL_KEY = 'mercado_alertas_vip';
+const ITENS_LOCAL_KEY = 'mercado_itens_vip';
 
 function getUsuarioLogado() {
-  return typeof obterUsuarioLogado === 'function'
-    ? obterUsuarioLogado()
-    : JSON.parse(localStorage.getItem('usuario_logado') || 'null');
+  return typeof obterUsuarioLogado === 'function' ? obterUsuarioLogado() : JSON.parse(localStorage.getItem('usuario_logado') || 'null');
 }
 
-function obterNickUsuario() {
+function nickUsuario() {
   return usuarioLogado?.nick || usuarioLogado?.name || 'Visitante';
 }
 
-function obterFavoritosLocais() {
-  return JSON.parse(localStorage.getItem(FAVORITOS_LOCAL_KEY) || '[]');
+function locais(chave) {
+  return JSON.parse(localStorage.getItem(chave) || '[]');
 }
 
-function salvarFavoritosLocais(favoritos) {
-  localStorage.setItem(FAVORITOS_LOCAL_KEY, JSON.stringify(favoritos));
+function salvarLocais(chave, dados) {
+  localStorage.setItem(chave, JSON.stringify(dados));
 }
 
-function notificar(texto) {
+function toast(texto) {
   const caixa = document.getElementById('caixa-notificacao-topo');
-  const txt = document.getElementById('texto-notificacao');
-  if (caixa && txt) {
-    txt.textContent = texto;
-    caixa.classList.remove('hidden');
-    caixa.classList.add('flex');
-  }
+  const textoNode = document.getElementById('texto-notificacao');
+  if (!caixa || !textoNode) return;
+  textoNode.textContent = texto;
+  caixa.classList.remove('hidden');
+  caixa.classList.add('flex');
 }
 
 function solicitarPermissaoNotificacao() {
-  if (!('Notification' in window)) {
-    notificar('Seu navegador não suporta notificações pop-up.');
+  if (!('Notification' in window)) return toast('Seu navegador não suporta notificações.');
+  Notification.requestPermission().then((permission) => toast(permission === 'granted' ? '✅ Notificações ativadas!' : 'Permissão de notificação negada.'));
+}
+
+function estiloMoeda(moeda) {
+  const valor = String(moeda || '').toUpperCase();
+  if (valor.includes('WC')) return 'text-amber-300 bg-amber-950/80 border-amber-600';
+  if (valor.includes('HP')) return 'text-purple-300 bg-purple-950/80 border-purple-600';
+  if (valor.includes('CREDIT')) return 'text-emerald-300 bg-emerald-950/80 border-emerald-600';
+  if (valor.includes('JOIA') || valor.includes('BLESS') || valor.includes('SOUL')) return 'text-cyan-300 bg-cyan-950/80 border-cyan-600';
+  return 'text-yellow-300 bg-yellow-950/80 border-yellow-600';
+}
+
+function normalizarItem(item) {
+  return { id: item.id || Date.now(), nome_item: item.nome_item || item.title || 'Item sem nome', categoria: item.categoria || item.category || 'Outros', preco: item.preco ?? item.price ?? 'A combinar', moeda: item.moeda || 'WC', vendedor: item.vendedor || item.seller || 'Anônimo', created_at: item.created_at || new Date().toISOString(), link_anuncio: item.link_anuncio || 'https://mulotus.net' };
+}
+
+async function buscarItens() {
+  if (window.db && typeof window.db.from === 'function') {
+    try {
+      const resultado = await window.db.from('mercado_itens').select('*').order('created_at', { ascending: false }).limit(40);
+      if (resultado.data?.length) return resultado.data.map(normalizarItem);
+    } catch (error) {
+      console.warn('Feed Supabase indisponível; usando dados locais.', error);
+    }
+  }
+  const locaisItens = locais(ITENS_LOCAL_KEY).map(normalizarItem);
+  if (locaisItens.length) return locaisItens;
+  return typeof MARKET_OFFERS !== 'undefined' ? MARKET_OFFERS.map(normalizarItem) : [];
+}
+
+function renderizarFiltrosMoeda(itens) {
+  const container = document.getElementById('filtro-moedas-mercado');
+  if (!container) return;
+  const moedas = ['TODAS', 'WC', 'HP', 'CREDITOS', 'ZEN', 'PACK_BLESS', 'PACK_SOUL', 'TROCA_ITEM'];
+  container.innerHTML = moedas.map((moeda) => `<button type="button" data-moeda="${moeda}" class="px-2.5 py-1 rounded-lg text-xs font-bold border transition ${filtroMoedaSelecionada === moeda ? 'bg-amber-500 text-black border-amber-400' : 'bg-gray-800 text-gray-400 border-gray-700 hover:text-amber-300'}">${moeda === 'TODAS' ? 'Todas' : moeda}</button>`).join('');
+  container.querySelectorAll('[data-moeda]').forEach((button) => button.addEventListener('click', () => {
+    filtroMoedaSelecionada = button.dataset.moeda;
+    renderizarFiltrosMoeda(itens);
+    renderizarCards(itens);
+  }));
+}
+
+function renderizarCards(itens) {
+  const container = document.getElementById('grid-mercado-cards');
+  if (!container) return;
+  const filtrados = filtroMoedaSelecionada === 'TODAS' ? itens : itens.filter((item) => item.moeda === filtroMoedaSelecionada);
+  if (!filtrados.length) {
+    container.innerHTML = '<div class="col-span-full text-center text-gray-500 border border-dashed border-gray-700 rounded-2xl p-8">Nenhum item anunciado nesta moeda.</div>';
     return;
   }
+  container.innerHTML = filtrados.map((item) => `<article class="market-card glass-panel rounded-2xl p-5 flex flex-col justify-between shadow-xl"><div><div class="flex justify-between items-start gap-2 mb-4"><span class="text-[10px] uppercase tracking-wider text-gray-500">${item.categoria}</span><span class="px-2 py-1 rounded text-[10px] border font-bold ${estiloMoeda(item.moeda)}">${item.moeda}</span></div><h3 class="font-gamer text-2xl font-extrabold text-white leading-tight">${item.nome_item}</h3><p class="text-xs text-gray-400 mt-3"><i class="fa-solid fa-user mr-1"></i>${item.vendedor}</p></div><div class="mt-5 pt-4 border-t border-gray-800 flex items-end justify-between gap-3"><div><span class="block text-[10px] uppercase text-gray-500">Valor / condição</span><strong class="text-lg text-amber-300">${item.preco}</strong></div><a href="${item.link_anuncio}" target="_blank" rel="noopener noreferrer" class="bg-amber-600 hover:bg-amber-500 text-black font-bold text-xs px-3 py-2 rounded-lg whitespace-nowrap">Ver anúncio</a></div></article>`).join('');
+}
 
-  Notification.requestPermission().then((permission) => {
-    notificar(permission === 'granted' ? '✅ Notificações ativadas no seu navegador!' : 'Permissão de notificação negada.');
-  });
+async function carregarItensMercadoCards() {
+  const itens = await buscarItens();
+  renderizarFiltrosMoeda(itens);
+  renderizarCards(itens);
+}
+
+const carregarItensMercado = carregarItensMercadoCards;
+
+async function publicarItem(event) {
+  event.preventDefault();
+  const item = normalizarItem({ nome_item: document.getElementById('post-nome')?.value.trim(), categoria: document.getElementById('post-categoria')?.value, moeda: document.getElementById('post-moeda')?.value, preco: document.getElementById('post-preco')?.value.trim(), vendedor: document.getElementById('post-vendedor')?.value.trim() || nickUsuario() });
+  if (!item.nome_item || !item.preco) return;
+  let publicado = false;
+  if (window.db && typeof window.db.from === 'function') {
+    try {
+      const { error } = await window.db.from('mercado_itens').insert([{ nome_item: item.nome_item, categoria: item.categoria, moeda: item.moeda, preco: item.preco, vendedor: item.vendedor, link_anuncio: item.link_anuncio }]);
+      publicado = !error;
+    } catch (error) {
+      console.warn('Não foi possível publicar no Supabase.', error);
+    }
+  }
+  if (!publicado) {
+    const itens = locais(ITENS_LOCAL_KEY);
+    itens.unshift(item);
+    salvarLocais(ITENS_LOCAL_KEY, itens);
+  }
+  document.getElementById('form-postar-item')?.reset();
+  await carregarItensMercadoCards();
+  toast(publicado ? 'Oferta publicada no radar!' : 'Oferta salva localmente no radar.');
 }
 
 async function carregarFavoritos() {
   const container = document.getElementById('lista-favoritos');
   if (!container) return;
-
-  let favoritos = obterFavoritosLocais();
+  let favoritos = locais(FAVORITOS_LOCAL_KEY);
   if (window.db && typeof window.db.from === 'function') {
     try {
-      const resultado = await window.db.from('mercado_favoritos').select('*').eq('nick_membro', obterNickUsuario());
+      const resultado = await window.db.from('mercado_favoritos').select('*').eq('nick_membro', nickUsuario());
       if (resultado.data) favoritos = resultado.data;
-    } catch (error) {
-      console.warn('Favoritos do Supabase indisponíveis; usando dados locais.', error);
-    }
+    } catch (error) { console.warn('Favoritos Supabase indisponíveis.', error); }
   }
-
-  if (!favoritos.length) {
-    container.innerHTML = '<p class="text-xs text-gray-500">Nenhum alerta ativo.</p>';
-    return;
-  }
-
-  container.innerHTML = favoritos.map((favorito) => {
-    const termo = favorito.termo_busca || favorito.termo;
-    const preco = favorito.preco_maximo ?? favorito.preco;
-    const moeda = favorito.moeda || favorito.moeda_pagamento || 'Qualquer';
-    return `<div class="bg-gray-800/70 p-2.5 rounded border border-gray-700 flex justify-between items-center text-xs mb-2"><div><strong class="text-amber-400 block">${termo}</strong><span class="text-gray-400 text-[10px]">Moeda: <b class="text-white">${moeda}</b> ${preco ? `| Máx: ${preco}` : ''}</span></div><button type="button" onclick="deletarFavorito('${favorito.id}')" class="text-red-400 hover:text-red-300 p-1"><i class="fa-solid fa-trash-can"></i></button></div>`;
-  }).join('');
+  container.innerHTML = favoritos.length ? favoritos.map((item) => `<div class="bg-gray-800/70 p-2.5 rounded border border-gray-700 flex justify-between items-center text-xs"><div><strong class="text-amber-400 block">${item.termo_busca || item.termo}</strong><span class="text-gray-400 text-[10px]">${item.moeda || 'Qualquer'} ${item.preco_maximo ? `| Máx: ${item.preco_maximo}` : ''}</span></div><button type="button" onclick="deletarFavorito('${item.id}')" class="text-red-400 hover:text-red-300 p-1"><i class="fa-solid fa-trash-can"></i></button></div>`).join('') : '<p class="text-xs text-gray-500">Nenhum alerta ativo.</p>';
 }
 
 async function criarFavorito(event) {
   event.preventDefault();
-
   const termo = document.getElementById('fav-termo')?.value.trim();
   const moeda = document.getElementById('fav-moeda')?.value || 'Qualquer';
   const preco = document.getElementById('fav-preco')?.value ? Number(document.getElementById('fav-preco').value) : null;
   if (!termo) return;
-
-  const favorito = { id: Date.now(), nick_membro: obterNickUsuario(), termo_busca: termo, preco_maximo: preco, moeda, moeda_pagamento: moeda, termo, preco };
-  let salvoNoBanco = false;
-
+  const favorito = { id: Date.now(), nick_membro: nickUsuario(), termo_busca: termo, preco_maximo: preco, moeda };
+  let salvo = false;
   if (window.db && typeof window.db.from === 'function') {
-    try {
-      const { error } = await window.db.from('mercado_favoritos').insert([{ nick_membro: favorito.nick_membro, termo_busca: termo, preco_maximo: preco, moeda }]);
-      salvoNoBanco = !error;
-    } catch (error) {
-      console.warn('Não foi possível salvar o alerta no Supabase.', error);
-    }
+    try { const { error } = await window.db.from('mercado_favoritos').insert([{ nick_membro: favorito.nick_membro, termo_busca: termo, preco_maximo: preco, moeda }]); salvo = !error; } catch (error) { console.warn('Não foi possível salvar o alerta.', error); }
   }
-
-  if (!salvoNoBanco) {
-    const favoritos = obterFavoritosLocais();
-    favoritos.push(favorito);
-    salvarFavoritosLocais(favoritos);
-  }
-
+  if (!salvo) { const favoritos = locais(FAVORITOS_LOCAL_KEY); favoritos.push(favorito); salvarLocais(FAVORITOS_LOCAL_KEY, favoritos); }
   document.getElementById('form-favorito')?.reset();
-  await carregarFavoritos();
-  notificar(`Alerta criado para "${termo}".`);
+  carregarFavoritos();
+  toast(`Alerta criado para "${termo}".`);
 }
 
 async function deletarFavorito(id) {
-  let removidoDoBanco = false;
-  if (window.db && typeof window.db.from === 'function') {
-    try {
-      const { error } = await window.db.from('mercado_favoritos').delete().eq('id', id);
-      removidoDoBanco = !error;
-    } catch (error) {
-      console.warn('Não foi possível remover o alerta do Supabase.', error);
-    }
-  }
-
-  if (!removidoDoBanco) salvarFavoritosLocais(obterFavoritosLocais().filter((favorito) => String(favorito.id) !== String(id)));
+  if (window.db && typeof window.db.from === 'function') { try { await window.db.from('mercado_favoritos').delete().eq('id', id); } catch (error) { console.warn('Não foi possível remover o alerta.', error); } }
+  salvarLocais(FAVORITOS_LOCAL_KEY, locais(FAVORITOS_LOCAL_KEY).filter((item) => String(item.id) !== String(id)));
   carregarFavoritos();
 }
 
-function normalizarItem(item) {
-  return {
-    id: item.id,
-    nome_item: item.nome_item || item.title,
-    categoria: item.categoria || item.category || 'VIP',
-    preco: item.preco ?? item.price,
-    moeda: item.moeda || 'WCoins',
-    vendedor: item.vendedor || item.seller,
-    created_at: item.created_at || new Date().toISOString(),
-    link_anuncio: item.link_anuncio || 'https://mulotus.net'
-  };
-}
-
-function obterEstiloMoeda(moeda) {
-  const valor = moeda ? moeda.toUpperCase() : 'WC';
-  if (valor.includes('WC')) return 'text-amber-400 bg-amber-950/80 border-amber-600';
-  if (valor.includes('HP')) return 'text-purple-400 bg-purple-950/80 border-purple-600';
-  if (valor.includes('CREDIT')) return 'text-emerald-400 bg-emerald-950/80 border-emerald-600';
-  if (valor.includes('JOIA') || valor.includes('BLESS') || valor.includes('SOUL')) return 'text-cyan-400 bg-cyan-950/80 border-cyan-600';
-  return 'text-yellow-300 bg-yellow-950/80 border-yellow-600';
-}
-
-async function carregarItensMercado() {
-  const tabela = document.getElementById('tabela-mercado');
-  if (!tabela) return;
-
-  let itens = [];
-  if (window.db && typeof window.db.from === 'function') {
-    try {
-      const resultado = await window.db.from('mercado_itens').select('*').order('created_at', { ascending: false }).limit(20);
-      if (resultado.data) itens = resultado.data.map(normalizarItem);
-    } catch (error) {
-      console.warn('Itens do Supabase indisponíveis; usando catálogo local.', error);
-    }
-  }
-
-  if (!itens.length && typeof MARKET_OFFERS !== 'undefined') itens = MARKET_OFFERS.map(normalizarItem);
-
-  if (!itens.length) {
-    tabela.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-gray-500">Nenhum item anunciado recentemente.</td></tr>';
-    return;
-  }
-
-  tabela.innerHTML = itens.map((item) => `<tr class="hover:bg-gray-800/50 border-b border-gray-800 transition"><td class="p-3 font-bold text-white">${item.nome_item}</td><td class="p-3 text-xs text-gray-400">${item.categoria}</td><td class="p-3"><span class="px-2 py-0.5 rounded text-xs border font-bold ${obterEstiloMoeda(item.moeda)}">${item.preco} ${item.moeda}</span></td><td class="p-3 text-gray-300 text-xs">${item.vendedor}</td><td class="p-3 text-xs text-gray-500">${new Date(item.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</td><td class="p-3 text-center"><a href="${item.link_anuncio}" target="_blank" rel="noopener noreferrer" class="bg-amber-600 hover:bg-amber-700 text-black font-bold text-xs px-2.5 py-1 rounded transition">Ver no Site <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i></a></td></tr>`).join('');
-}
-
-async function verificarMatchFavorito(novoItem) {
-  const item = normalizarItem(novoItem);
-  let favoritos = obterFavoritosLocais();
-
-  if (window.db && typeof window.db.from === 'function') {
-    try {
-      const resultado = await window.db.from('mercado_favoritos').select('*').eq('nick_membro', obterNickUsuario());
-      if (resultado.data) favoritos = resultado.data;
-    } catch (error) {
-      console.warn('Não foi possível verificar alertas no Supabase.', error);
-    }
-  }
-
-  favoritos.forEach((favorito) => {
+function verificarMatchFavorito(item) {
+  const novoItem = normalizarItem(item);
+  locais(FAVORITOS_LOCAL_KEY).forEach((favorito) => {
     const termo = favorito.termo_busca || favorito.termo || '';
-    const preco = favorito.preco_maximo ?? favorito.preco;
-    const moeda = favorito.moeda || favorito.moeda_pagamento || 'Qualquer';
-    const bateuMoeda = moeda === 'Qualquer' || item.moeda.toUpperCase().includes(moeda.toUpperCase());
-    if (item.nome_item.toLowerCase().includes(termo.toLowerCase()) && bateuMoeda && (!preco || Number(item.preco) <= Number(preco))) dispararAlerta(item);
+    const moedaOk = !favorito.moeda || favorito.moeda === 'Qualquer' || novoItem.moeda.toUpperCase().includes(favorito.moeda.toUpperCase());
+    if (novoItem.nome_item.toLowerCase().includes(termo.toLowerCase()) && moedaOk) {
+      const texto = `🔥 ALERTA: ${novoItem.nome_item} por ${novoItem.preco} ${novoItem.moeda}!`;
+      toast(texto);
+      if ('Notification' in window && Notification.permission === 'granted') new Notification('Alerta Mercado VIP', { body: texto });
+    }
   });
-}
-
-function dispararAlerta(item) {
-  const texto = `🔥 ALERTA DE MERCADO: ${item.nome_item} postado por ${item.preco} ${item.moeda}!`;
-  notificar(texto);
-  tocarSomNotificacao();
-
-  if ('Notification' in window && Notification.permission === 'granted') new Notification('🚨 ALERTA DE MERCADO MU LOTUS!', { body: texto });
-}
-
-function tocarSomNotificacao() {
-  try {
-    const contexto = new (window.AudioContext || window.webkitAudioContext)();
-    const oscilador = contexto.createOscillator();
-    oscilador.frequency.setValueAtTime(880, contexto.currentTime);
-    oscilador.connect(contexto.destination);
-    oscilador.start();
-    oscilador.stop(contexto.currentTime + 0.3);
-  } catch (error) {
-    console.warn('Som de notificação indisponível.', error);
-  }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
   usuarioLogado = getUsuarioLogado();
-
   if (!usuarioLogado || (!usuarioLogado.acesso_mercado && !usuarioLogado.is_admin && usuarioLogado.role !== 'admin')) {
     alert('⛔ Acesso Restrito! Esta área é exclusiva para o Mercado VIP.');
     window.location.href = 'index.html';
     return;
   }
-
+  renderHeaderNav();
   carregarFavoritos();
   carregarItensMercado();
-
-  const form = document.getElementById('form-favorito');
-  if (form) form.addEventListener('submit', criarFavorito);
-
-  if (window.db && typeof window.db.channel === 'function') {
-    window.db.channel('mercado_realtime').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'mercado_itens' }, (payload) => {
-      carregarItensMercado();
-      verificarMatchFavorito(payload.new);
-    }).subscribe();
-  }
-
+  document.getElementById('form-favorito')?.addEventListener('submit', criarFavorito);
+  document.getElementById('form-postar-item')?.addEventListener('submit', publicarItem);
+  if (window.db && typeof window.db.channel === 'function') window.db.channel('mercado_realtime').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'mercado_itens' }, (payload) => { carregarItensMercado(); verificarMatchFavorito(payload.new); }).subscribe();
   window.solicitarPermissaoNotificacao = solicitarPermissaoNotificacao;
 });

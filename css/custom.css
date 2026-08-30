@@ -1,0 +1,36 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Rajdhani:wght@600;700;800&display=swap');
+
+:root {
+  --bg-main: #04060b;
+  --card-glass: rgba(13, 19, 33, 0.75);
+  --border-glass: rgba(255, 255, 255, 0.08);
+}
+
+body {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  background-color: var(--bg-main);
+  background-image: radial-gradient(at 0% 0%, rgba(220, 38, 38, 0.12), transparent 40%), radial-gradient(at 100% 100%, rgba(245, 158, 11, 0.08), transparent 40%), radial-gradient(at 50% 50%, rgba(168, 85, 247, 0.05), transparent 60%);
+  background-attachment: fixed;
+}
+
+.font-gamer { font-family: 'Rajdhani', sans-serif; }
+
+.glass-panel {
+  background: var(--card-glass);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border-glass);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-panel:hover { border-color: rgba(239, 68, 68, 0.35); box-shadow: 0 10px 30px -10px rgba(220, 38, 38, 0.25); transform: translateY(-2px); }
+.glow-red { box-shadow: 0 0 20px -3px rgba(239, 68, 68, 0.4); }
+.glow-amber { box-shadow: 0 0 20px -3px rgba(245, 158, 11, 0.4); }
+.glow-purple { box-shadow: 0 0 20px -3px rgba(168, 85, 247, 0.4); }
+
+.market-card { min-height: 220px; }
+
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #05070d; }
+::-webkit-scrollbar-thumb { background: #1f293d; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #ef4444; }
