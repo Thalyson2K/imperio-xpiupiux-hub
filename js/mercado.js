@@ -2,6 +2,8 @@ let usuarioLogado = null;
 let filtroMoedaSelecionada = 'TODAS';
 let historicoMedias = {};
 let radarsDoUsuario = [];
+let termoFiltroDesejo = null;
+let focoDesejo = '';
 let scannerTimer = null;
 const ultimosItensVistos = new Set();
 const FAVORITOS_LOCAL_KEY = 'mercado_alertas_vip';
@@ -202,7 +204,8 @@ function renderizarFiltrosMoeda(itens) {
 function renderizarCards(itens) {
   const container = document.getElementById('grid-achados-radar') || document.getElementById('grid-mercado-cards');
   if (!container) return;
-  const filtrados = filtroMoedaSelecionada === 'TODAS' ? itens : itens.filter((item) => item.moeda === filtroMoedaSelecionada);
+  const porMoeda = filtroMoedaSelecionada === 'TODAS' ? itens : itens.filter((item) => item.moeda === filtroMoedaSelecionada);
+  const filtrados = focoDesejo ? porMoeda.filter((item) => item.nome_item.toLowerCase().includes(focoDesejo.toLowerCase())) : porMoeda;
   if (!filtrados.length) {
     container.innerHTML = '<div class="col-span-full text-center text-gray-500 border border-dashed border-gray-700 rounded-2xl p-8">Nenhum item anunciado nesta moeda.</div>';
     return;
@@ -222,6 +225,25 @@ function renderizarCards(itens) {
   }).join('');
 }
 
+function focarDesejo(termo) {
+  focoDesejo = termo;
+  termoFiltroDesejo = termo;
+  const barra = document.getElementById('barra-foco-desejo');
+  const nome = document.getElementById('nome-item-foco');
+  if (barra) barra.classList.remove('hidden');
+  if (nome) nome.textContent = termo;
+  carregarItensMercadoCards();
+}
+
+const focarItemDesejo = focarDesejo;
+
+function limparFocoDesejo() {
+  focoDesejo = '';
+  termoFiltroDesejo = null;
+  document.getElementById('barra-foco-desejo')?.classList.add('hidden');
+  carregarItensMercadoCards();
+}
+
 function renderizarRadarsAtivos() {
   const container = document.getElementById('lista-radars-ativos');
   const total = document.getElementById('total-radars');
@@ -230,8 +252,9 @@ function renderizarRadarsAtivos() {
   const radars = radarsDoUsuario.length ? radarsDoUsuario : locais(FAVORITOS_LOCAL_KEY);
   if (total) total.textContent = radars.length;
   container.innerHTML = radars.length
-    ? radars.map((radar) => `<div class="bg-gray-900/90 p-2.5 rounded-xl border border-gray-800 flex justify-between items-center text-xs"><div><strong class="text-amber-400 block">${radar.termo_busca}</strong><span class="text-gray-400 text-[10px]">${radar.moeda || 'Qualquer'}${radar.preco_maximo ? ` | Máx: ${radar.preco_maximo}` : ''}</span></div><button type="button" onclick="deletarFavorito('${radar.id}')" class="text-red-400 hover:text-red-300"><i class="fa-solid fa-trash-can"></i></button></div>`).join('')
+    ? radars.map((radar) => `<div class="bg-gray-900/90 p-2.5 rounded-xl border border-gray-800 flex justify-between items-center text-xs"><button type="button" data-focus-term="${radar.termo_busca}" class="text-left"><strong class="text-amber-400 font-gamer text-sm block">${radar.termo_busca}</strong><span class="text-[10px] text-gray-400">Moeda: ${radar.moeda || 'Todas'}${radar.preco_maximo ? ` | Máx: ${radar.preco_maximo}` : ''}</span></button><button type="button" onclick="deletarFavorito('${radar.id}')" class="text-red-400 hover:text-red-300 p-1.5"><i class="fa-solid fa-trash-can"></i></button></div>`).join('')
     : '<p class="text-xs text-gray-500">Nenhum radar ativo.</p>';
+  container.querySelectorAll('[data-focus-term]').forEach((button) => button.addEventListener('click', () => focarDesejo(button.dataset.focusTerm)));
 }
 
 async function carregarItensMercadoCards() {
@@ -309,6 +332,8 @@ async function criarFavorito(event) {
   document.getElementById('form-radar-desejo')?.reset();
   carregarFavoritos();
   renderizarRadarsAtivos();
+  focarItemDesejo(termo);
+  escanearMercadoMuLotus();
   toast(`Alerta criado para "${termo}".`);
 }
 

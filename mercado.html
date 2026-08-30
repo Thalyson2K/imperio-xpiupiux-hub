@@ -31,8 +31,8 @@
     <main class="flex-1 container mx-auto p-6 grid grid-cols-1 lg:grid-cols-4 gap-6">
         <div class="space-y-6">
             <div class="glass-panel rounded-2xl p-5 shadow-2xl border-amber-500/20">
-                <h2 class="font-gamer text-xl font-extrabold text-amber-400 mb-3 border-b border-gray-800 pb-2 flex items-center"><i class="fa-solid fa-crosshairs mr-2 text-red-500"></i> Configurar Novo Radar</h2>
-                <p class="text-xs text-gray-400 mb-4">Cadastre o item que deseja comprar no Mu Lotus. O Radar avisa assim que ele aparecer no site!</p>
+                <h2 class="font-gamer text-xl font-extrabold text-amber-400 mb-3 border-b border-gray-800 pb-2 flex items-center"><i class="fa-solid fa-crosshairs mr-2 text-red-500"></i> Cadastrar Item de Desejo</h2>
+                <p class="text-xs text-gray-400 mb-4">Digite o nome exato para buscar todas as unidades listadas no market!</p>
                 <form id="form-radar-desejo" class="space-y-3">
                     <div><label class="block text-xs font-bold uppercase text-gray-300 mb-1">Item Desejado (Nome/Palavra)</label><input type="text" id="radar-termo" required placeholder="Ex: Wing of Dragon, Kundun Staff" class="w-full bg-gray-900/90 border border-gray-700/80 rounded-xl p-2.5 text-white text-sm focus:outline-none focus:border-amber-500 transition"></div>
                     <div><label class="block text-xs font-bold uppercase text-gray-300 mb-1">Moeda Alvo</label><select id="radar-moeda" class="w-full bg-gray-900/90 border border-gray-700/80 rounded-xl p-2.5 text-amber-400 font-bold text-xs"><option value="Qualquer">Qualquer Moeda</option><option value="WC">🟡 WC (WCoins)</option><option value="HP">🟣 HP (Hunt Points)</option><option value="CREDITOS">🟢 Créditos Web</option><option value="ZEN">🟡 Zen</option></select></div>
@@ -41,7 +41,8 @@
                 </form>
             </div>
             <div class="glass-panel rounded-2xl p-5 shadow-2xl">
-                <h3 class="font-gamer text-lg font-bold text-gray-200 mb-3 border-b border-gray-800 pb-2 flex justify-between items-center"><span>Radars Ativos</span><span id="total-radars" class="text-xs bg-amber-950 text-amber-400 border border-amber-700/50 px-2 py-0.5 rounded-lg">0</span></h3>
+                <h3 class="font-gamer text-lg font-bold text-gray-200 mb-2 border-b border-gray-800 pb-2 flex justify-between items-center"><span>Meus Desejos Cadastrados</span><span id="total-radars" class="text-xs bg-amber-950 text-amber-400 border border-amber-700/50 px-2 py-0.5 rounded-lg">0</span></h3>
+                <p class="text-[11px] text-gray-400 mb-3">Clique em qualquer item para ver todos os exemplares à venda no Mu Lotus:</p>
                 <div id="lista-radars-ativos" class="space-y-2 max-h-64 overflow-y-auto"></div>
             </div>
         </div>
@@ -49,13 +50,17 @@
         <div class="lg:col-span-3 space-y-4">
             <div class="glass-panel rounded-2xl p-4 flex flex-col sm:flex-row justify-between items-center gap-3">
                 <div class="flex flex-col sm:flex-row items-start sm:items-center space-y-1 sm:space-y-0 sm:space-x-3">
-                    <h2 class="font-gamer text-xl font-bold text-white tracking-wider uppercase">Achados no Radar (mulotus.net)</h2>
-                    <div id="status-scanner-mulotus" class="text-xs bg-gray-950 px-2.5 py-1 rounded-lg border border-gray-800"><span class="text-amber-400 font-bold"><i class="fa-solid fa-spinner fa-spin mr-1"></i> Conectando ao MuLotus...</span></div>
+                    <h2 class="font-gamer text-xl font-bold text-white tracking-wider uppercase flex items-center"><i class="fa-solid fa-list-check mr-2 text-amber-400"></i> Achados no Market (mulotus.net)</h2>
+                    <div id="status-scanner-mulotus" class="text-xs bg-gray-950 px-2.5 py-1 rounded-lg border border-gray-800"><span class="text-emerald-400 font-bold"><i class="fa-solid fa-circle text-[8px] mr-1"></i> Conectado em Tempo Real</span></div>
                 </div>
                 <div class="flex space-x-2">
                     <button onclick="escanearMercadoMuLotus()" class="text-xs bg-gradient-to-r from-amber-600 to-amber-500 text-black font-extrabold px-3 py-2 rounded-xl shadow-lg hover:from-amber-700 hover:to-amber-600 transition flex items-center space-x-1"><i class="fa-solid fa-arrows-rotate mr-1"></i><span>Sincronizar Agora</span></button>
                     <button onclick="solicitarPermissaoNotificacao()" class="text-xs bg-gray-900 hover:bg-gray-800 text-amber-400 font-bold px-3 py-2 rounded-xl border border-gray-700 transition flex items-center space-x-1.5"><i class="fa-solid fa-bell text-amber-400"></i><span>Alerta Sonoro</span></button>
                 </div>
+            </div>
+            <div id="barra-foco-desejo" class="hidden bg-amber-500/10 border border-amber-500/30 rounded-xl p-3 flex justify-between items-center text-xs text-amber-300">
+                <div class="flex items-center space-x-2"><i class="fa-solid fa-magnifying-glass text-amber-400 text-base"></i><span>Mostrando todos os exemplares listados de: <b id="nome-item-foco" class="text-white font-gamer text-sm"></b></span></div>
+                <button type="button" onclick="limparFocoDesejo()" class="bg-gray-900 hover:bg-gray-800 text-gray-300 hover:text-white px-3 py-1 rounded-lg border border-gray-700 transition font-bold"><i class="fa-solid fa-xmark mr-1"></i> Ver Todos os Achados</button>
             </div>
             <div id="grid-achados-radar" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4"></div>
         </div>
