@@ -1,5 +1,6 @@
 let usuarioLogado = null;
 let filtroMoedaSelecionada = 'TODAS';
+let historicoMedias = {};
 const FAVORITOS_LOCAL_KEY = 'mercado_alertas_vip';
 const ITENS_LOCAL_KEY = 'mercado_itens_vip';
 
@@ -42,6 +43,46 @@ function estiloMoeda(moeda) {
   return 'text-yellow-300 bg-yellow-950/80 border-yellow-600';
 }
 
+function calcularAnalisePreco(nomeItem, precoAtual) {
+  const nomeLower = String(nomeItem || '').toLowerCase();
+  const precoNumerico = Number(precoAtual);
+  let mediaEncontrada = null;
+
+  for (const itemMedio in historicoMedias) {
+    if (nomeLower.includes(itemMedio)) {
+      mediaEncontrada = Number(historicoMedias[itemMedio]);
+      break;
+    }
+  }
+
+  if (!mediaEncontrada || !Number.isFinite(precoNumerico)) {
+    return { percentual: 0, status: 'SEM_DADOS', label: '⚖️ Sem Histórico', badgeCor: 'bg-gray-800 text-gray-400 border-gray-700', media: null };
+  }
+
+  const diferenca = ((precoNumerico - mediaEncontrada) / mediaEncontrada) * 100;
+  const percentual = Math.abs(Math.round(diferenca));
+
+  if (diferenca <= -15) {
+    return { percentual, status: 'SUPER_OFERTA', label: `🔥 ${percentual}% ABAIXO DA MÉDIA (Super Oferta!)`, badgeCor: 'bg-emerald-950/90 text-emerald-400 border-emerald-500/80', media: mediaEncontrada };
+  }
+  if (diferenca >= 15) {
+    return { percentual, status: 'ACIMA_MEDIA', label: `📈 ${percentual}% Acima da Média`, badgeCor: 'bg-red-950/90 text-red-400 border-red-600/80', media: mediaEncontrada };
+  }
+  return { percentual, status: 'JUSTO', label: '⚖️ Preço Justo (Na Média)', badgeCor: 'bg-blue-950/90 text-blue-300 border-blue-600/80', media: mediaEncontrada };
+}
+
+async function carregarHistoricoMedias() {
+  if (!window.db || typeof window.db.from !== 'function') return;
+  try {
+    const resultado = await window.db.from('mercado_historico_precos').select('*');
+    (resultado.data || []).forEach((media) => {
+      historicoMedias[String(media.nome_item).toLowerCase()] = Number(media.preco_medio);
+    });
+  } catch (error) {
+    console.warn('Histórico de preços indisponível; cards sem média histórica.', error);
+  }
+}
+
 function normalizarItem(item) {
   return { id: item.id || Date.now(), nome_item: item.nome_item || item.title || 'Item sem nome', categoria: item.categoria || item.category || 'Outros', preco: item.preco ?? item.price ?? 'A combinar', moeda: item.moeda || 'WC', vendedor: item.vendedor || item.seller || 'Anônimo', created_at: item.created_at || new Date().toISOString(), link_anuncio: item.link_anuncio || 'https://mulotus.net' };
 }
@@ -80,7 +121,11 @@ function renderizarCards(itens) {
     container.innerHTML = '<div class="col-span-full text-center text-gray-500 border border-dashed border-gray-700 rounded-2xl p-8">Nenhum item anunciado nesta moeda.</div>';
     return;
   }
-  container.innerHTML = filtrados.map((item) => `<article class="market-card glass-panel rounded-2xl p-5 flex flex-col justify-between shadow-xl"><div><div class="flex justify-between items-start gap-2 mb-4"><span class="text-[10px] uppercase tracking-wider text-gray-500">${item.categoria}</span><span class="px-2 py-1 rounded text-[10px] border font-bold ${estiloMoeda(item.moeda)}">${item.moeda}</span></div><h3 class="font-gamer text-2xl font-extrabold text-white leading-tight">${item.nome_item}</h3><p class="text-xs text-gray-400 mt-3"><i class="fa-solid fa-user mr-1"></i>${item.vendedor}</p></div><div class="mt-5 pt-4 border-t border-gray-800 flex items-end justify-between gap-3"><div><span class="block text-[10px] uppercase text-gray-500">Valor / condição</span><strong class="text-lg text-amber-300">${item.preco}</strong></div><a href="${item.link_anuncio}" target="_blank" rel="noopener noreferrer" class="bg-amber-600 hover:bg-amber-500 text-black font-bold text-xs px-3 py-2 rounded-lg whitespace-nowrap">Ver anúncio</a></div></article>`).join('');
+  container.innerHTML = filtrados.map((item) => {
+    const analise = calcularAnalisePreco(item.nome_item, item.preco);
+    const destaque = analise.status === 'SUPER_OFERTA' ? 'border-emerald-500/50' : '';
+    return `<article class="market-card glass-panel ${destaque} rounded-2xl p-5 flex flex-col justify-between shadow-xl"><div><div class="flex justify-between items-start gap-2 mb-4"><span class="text-[10px] uppercase tracking-wider text-gray-500">${item.categoria}</span><span class="px-2 py-1 rounded text-[10px] border font-bold ${estiloMoeda(item.moeda)}">${item.moeda}</span></div><h3 class="font-gamer text-2xl font-extrabold text-white leading-tight">${item.nome_item}</h3></div><div class="space-y-2 mt-4"><div class="bg-gray-950/70 p-3 rounded-xl border border-gray-800/80 flex justify-between items-center"><span class="text-xs text-gray-400 font-semibold">Valor anunciado:</span><strong class="text-lg text-amber-300">${item.preco} ${item.moeda}</strong></div><div class="text-[11px] font-bold p-2 rounded-lg border flex justify-between items-center ${analise.badgeCor}"><span>${analise.label}</span>${analise.media ? `<span class="text-[10px] font-normal">Média: ${analise.media} ${item.moeda}</span>` : ''}</div></div><div class="mt-5 pt-4 border-t border-gray-800 flex items-end justify-between gap-3"><div><span class="block text-[10px] uppercase text-gray-500">Vendedor</span><strong class="text-sm text-gray-300"><i class="fa-solid fa-user mr-1 text-red-500"></i>${item.vendedor}</strong></div><a href="${item.link_anuncio}" target="_blank" rel="noopener noreferrer" class="bg-amber-600 hover:bg-amber-500 text-black font-bold text-xs px-3 py-2 rounded-lg whitespace-nowrap">Negociar</a></div></article>`;
+  }).join('');
 }
 
 async function carregarItensMercadoCards() {
@@ -171,10 +216,40 @@ document.addEventListener('DOMContentLoaded', () => {
     return;
   }
   renderHeaderNav();
+  carregarHistoricoMedias().then(() => carregarItensMercadoCards());
   carregarFavoritos();
-  carregarItensMercado();
   document.getElementById('form-favorito')?.addEventListener('submit', criarFavorito);
   document.getElementById('form-postar-item')?.addEventListener('submit', publicarItem);
-  if (window.db && typeof window.db.channel === 'function') window.db.channel('mercado_realtime').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'mercado_itens' }, (payload) => { carregarItensMercado(); verificarMatchFavorito(payload.new); }).subscribe();
+  if (window.db && typeof window.db.channel === 'function') window.db.channel('mercado_realtime').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'mercado_itens' }, (payload) => { carregarItensMercadoCards(); verificarMatchEAnalisarPreco(payload.new); }).subscribe();
   window.solicitarPermissaoNotificacao = solicitarPermissaoNotificacao;
 });
+
+async function verificarMatchEAnalisarPreco(novoItem) {
+  const item = normalizarItem(novoItem);
+  const analise = calcularAnalisePreco(item.nome_item, item.preco);
+  let favoritos = locais(FAVORITOS_LOCAL_KEY);
+
+  if (window.db && typeof window.db.from === 'function') {
+    try {
+      const resultado = await window.db.from('mercado_favoritos').select('*').eq('nick_membro', nickUsuario());
+      if (resultado.data) favoritos = resultado.data;
+    } catch (error) {
+      console.warn('Não foi possível consultar alertas de mercado.', error);
+    }
+  }
+
+  const corresponde = favoritos.some((favorito) => {
+    const termo = favorito.termo_busca || favorito.termo || '';
+    const moeda = favorito.moeda || 'Qualquer';
+    const preco = favorito.preco_maximo ?? favorito.preco;
+    return item.nome_item.toLowerCase().includes(termo.toLowerCase())
+      && (moeda === 'Qualquer' || item.moeda.toUpperCase().includes(moeda.toUpperCase()))
+      && (!preco || Number(item.preco) <= Number(preco));
+  });
+
+  if (corresponde || analise.status === 'SUPER_OFERTA') {
+    const texto = `🔥 ${analise.status === 'SUPER_OFERTA' ? 'SUPER OPORTUNIDADE' : 'ALERTA VIP'}: ${item.nome_item} por ${item.preco} ${item.moeda} (${analise.label})!`;
+    toast(texto);
+    if ('Notification' in window && Notification.permission === 'granted') new Notification('Alerta de Mercado Mu Lotus', { body: texto });
+  }
+}
