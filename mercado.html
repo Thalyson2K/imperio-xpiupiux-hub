@@ -3,72 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Radar VIP de Desejos - Império XPiuPiuX</title>
+    <title>Mercado & Radar VIP - Império XPiuPiuX</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/custom.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body class="bg-gray-950 text-gray-100 min-h-screen flex flex-col">
     <nav class="glass-panel sticky top-0 z-50 px-6 py-4 flex justify-between items-center border-b border-gray-800/80">
         <div class="flex items-center space-x-3">
-            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-red-600 via-amber-500 to-yellow-400 flex items-center justify-center glow-amber">
-                <i class="fa-solid fa-crosshairs text-black text-xl font-black"></i>
-            </div>
-            <div>
-                <span class="font-gamer text-2xl font-black tracking-wider bg-gradient-to-r from-amber-400 via-red-500 to-amber-300 bg-clip-text text-transparent">RADAR VIP DE DESEJOS</span>
-                <span class="block text-[10px] text-gray-400 font-semibold tracking-widest uppercase">Caçador de Ofertas Mu Lotus</span>
-            </div>
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 via-red-600 to-purple-600 flex items-center justify-center glow-amber"><i class="fa-solid fa-chart-line text-black text-xl font-black"></i></div>
+            <div><span class="font-gamer text-2xl font-black tracking-wider bg-gradient-to-r from-amber-400 via-red-500 to-amber-300 bg-clip-text text-transparent">MERCADO & RADAR VIP</span><span class="block text-[10px] text-gray-400 font-semibold tracking-widest uppercase">Central de Inteligência Mu Lotus</span></div>
         </div>
         <div id="header-nav" class="flex space-x-6 text-sm font-semibold"></div>
     </nav>
 
-    <div id="caixa-notificacao-topo" class="hidden bg-amber-500/10 border-b border-amber-500/30 px-6 py-3 text-amber-300 text-sm flex justify-between items-center backdrop-blur-md sticky top-[73px] z-40">
-        <div class="flex items-center space-x-3"><i class="fa-solid fa-crosshairs text-amber-400 animate-bounce text-xl"></i><span id="texto-notificacao" class="font-semibold"></span></div>
-        <button onclick="document.getElementById('caixa-notificacao-topo').classList.add('hidden')" class="text-xs bg-amber-950/80 px-3 py-1 rounded-lg border border-amber-700/50 hover:bg-amber-900 transition">Fechar Alerta</button>
-    </div>
+    <div id="caixa-notificacao-topo" class="hidden bg-amber-500/10 border-b border-amber-500/30 px-6 py-3 text-amber-300 text-sm flex justify-between items-center backdrop-blur-md sticky top-[73px] z-40"><div class="flex items-center space-x-3"><i class="fa-solid fa-crosshairs text-amber-400 animate-bounce text-xl"></i><span id="texto-notificacao" class="font-semibold"></span></div><button onclick="document.getElementById('caixa-notificacao-topo').classList.add('hidden')" class="text-xs bg-amber-950/80 px-3 py-1 rounded-lg border border-amber-700/50 hover:bg-amber-900 transition">Fechar Alerta</button></div>
 
-    <main class="flex-1 container mx-auto p-6 grid grid-cols-1 lg:grid-cols-4 gap-6">
-        <div class="space-y-6">
-            <div class="glass-panel rounded-2xl p-5 shadow-2xl border-amber-500/20">
-                <h2 class="font-gamer text-xl font-extrabold text-amber-400 mb-3 border-b border-gray-800 pb-2 flex items-center"><i class="fa-solid fa-crosshairs mr-2 text-red-500"></i> Cadastrar Item de Desejo</h2>
-                <p class="text-xs text-gray-400 mb-4">Digite o nome exato para buscar todas as unidades listadas no market!</p>
-                <form id="form-radar-desejo" class="space-y-3">
-                    <div><label class="block text-xs font-bold uppercase text-gray-300 mb-1">Item Desejado (Nome/Palavra)</label><input type="text" id="radar-termo" required placeholder="Ex: Wing of Dragon, Kundun Staff" class="w-full bg-gray-900/90 border border-gray-700/80 rounded-xl p-2.5 text-white text-sm focus:outline-none focus:border-amber-500 transition"></div>
-                    <div><label class="block text-xs font-bold uppercase text-gray-300 mb-1">Moeda Alvo</label><select id="radar-moeda" class="w-full bg-gray-900/90 border border-gray-700/80 rounded-xl p-2.5 text-amber-400 font-bold text-xs"><option value="Qualquer">Qualquer Moeda</option><option value="WC">🟡 WC (WCoins)</option><option value="HP">🟣 HP (Hunt Points)</option><option value="CREDITOS">🟢 Créditos Web</option><option value="ZEN">🟡 Zen</option></select></div>
-                    <div><label class="block text-xs font-bold uppercase text-gray-300 mb-1">Valor Máximo Tolerado</label><input type="number" id="radar-preco" placeholder="Ex: 500 (Deixe limpo para qualquer valor)" class="w-full bg-gray-900/90 border border-gray-700/80 rounded-xl p-2.5 text-white text-sm focus:outline-none focus:border-amber-500 transition"></div>
-                    <button type="submit" class="w-full bg-gradient-to-r from-amber-600 via-red-600 to-amber-500 hover:from-amber-700 hover:to-red-700 text-black font-extrabold py-3 rounded-xl transition shadow-lg glow-amber uppercase text-xs tracking-wider"><i class="fa-solid fa-crosshairs mr-1"></i> Ativar Radar de Caça</button>
-                </form>
-            </div>
-            <div class="glass-panel rounded-2xl p-5 shadow-2xl">
-                <h3 class="font-gamer text-lg font-bold text-gray-200 mb-2 border-b border-gray-800 pb-2 flex justify-between items-center"><span>Meus Desejos Cadastrados</span><span id="total-radars" class="text-xs bg-amber-950 text-amber-400 border border-amber-700/50 px-2 py-0.5 rounded-lg">0</span></h3>
-                <p class="text-[11px] text-gray-400 mb-3">Clique em qualquer item para ver todos os exemplares à venda no Mu Lotus:</p>
-                <div id="lista-radars-ativos" class="space-y-2 max-h-64 overflow-y-auto"></div>
-            </div>
-        </div>
+    <div class="container mx-auto px-6 pt-6"><div class="glass-panel rounded-2xl p-2 flex flex-wrap gap-2 border border-gray-800"><button onclick="mudarAbaMercado('radar')" id="btn-aba-radar" class="flex-1 min-w-[190px] py-3 px-4 rounded-xl font-gamer font-bold text-sm transition flex items-center justify-center space-x-2 bg-gradient-to-r from-red-600 to-amber-600 text-white shadow-lg"><i class="fa-solid fa-crosshairs text-lg"></i><span>1. Radar VIP de Desejos</span></button><button onclick="mudarAbaMercado('global')" id="btn-aba-global" class="flex-1 min-w-[190px] py-3 px-4 rounded-xl font-gamer font-bold text-sm transition bg-gray-900 text-gray-400 hover:text-white border border-gray-800"><i class="fa-solid fa-globe text-lg mr-2"></i>2. Mercado Global</button><button onclick="mudarAbaMercado('graficos')" id="btn-aba-graficos" class="flex-1 min-w-[190px] py-3 px-4 rounded-xl font-gamer font-bold text-sm transition bg-gray-900 text-gray-400 hover:text-white border border-gray-800"><i class="fa-solid fa-chart-pie text-lg mr-2"></i>3. Gráficos & Médias</button></div></div>
 
-        <div class="lg:col-span-3 space-y-4">
-            <div class="glass-panel rounded-2xl p-4 flex flex-col sm:flex-row justify-between items-center gap-3">
-                <div class="flex flex-col sm:flex-row items-start sm:items-center space-y-1 sm:space-y-0 sm:space-x-3">
-                    <h2 class="font-gamer text-xl font-bold text-white tracking-wider uppercase flex items-center"><i class="fa-solid fa-list-check mr-2 text-amber-400"></i> Achados no Market (mulotus.net)</h2>
-                    <div id="status-scanner-mulotus" class="text-xs bg-gray-950 px-2.5 py-1 rounded-lg border border-gray-800"><span class="text-emerald-400 font-bold"><i class="fa-solid fa-circle text-[8px] mr-1"></i> Conectado em Tempo Real</span></div>
-                </div>
-                <div class="flex space-x-2">
-                    <button onclick="escanearMercadoMuLotus()" class="text-xs bg-gradient-to-r from-amber-600 to-amber-500 text-black font-extrabold px-3 py-2 rounded-xl shadow-lg hover:from-amber-700 hover:to-amber-600 transition flex items-center space-x-1"><i class="fa-solid fa-arrows-rotate mr-1"></i><span>Sincronizar Agora</span></button>
-                    <button onclick="solicitarPermissaoNotificacao()" class="text-xs bg-gray-900 hover:bg-gray-800 text-amber-400 font-bold px-3 py-2 rounded-xl border border-gray-700 transition flex items-center space-x-1.5"><i class="fa-solid fa-bell text-amber-400"></i><span>Alerta Sonoro</span></button>
-                </div>
-            </div>
-            <div id="barra-foco-desejo" class="hidden bg-amber-500/10 border border-amber-500/30 rounded-xl p-3 flex justify-between items-center text-xs text-amber-300">
-                <div class="flex items-center space-x-2"><i class="fa-solid fa-magnifying-glass text-amber-400 text-base"></i><span>Mostrando todos os exemplares listados de: <b id="nome-item-foco" class="text-white font-gamer text-sm"></b></span></div>
-                <button type="button" onclick="limparFocoDesejo()" class="bg-gray-900 hover:bg-gray-800 text-gray-300 hover:text-white px-3 py-1 rounded-lg border border-gray-700 transition font-bold"><i class="fa-solid fa-xmark mr-1"></i> Ver Todos os Achados</button>
-            </div>
-            <div id="grid-achados-radar" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4"></div>
-        </div>
+    <main id="secao-radar-vip" class="flex-1 container mx-auto p-6 grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <div class="space-y-6"><div class="glass-panel rounded-2xl p-5 shadow-2xl border-amber-500/20"><h2 class="font-gamer text-xl font-extrabold text-amber-400 mb-3 border-b border-gray-800 pb-2 flex items-center"><i class="fa-solid fa-crosshairs mr-2 text-red-500"></i>Cadastrar Item de Desejo</h2><form id="form-radar-desejo" class="space-y-3"><input type="text" id="radar-termo" required placeholder="Ex: Excellent Dragon Soul Staff" class="w-full bg-gray-900/90 border border-gray-700/80 rounded-xl p-2.5 text-white text-sm"><select id="radar-moeda" class="w-full bg-gray-900/90 border border-gray-700/80 rounded-xl p-2.5 text-amber-400 font-bold text-xs"><option value="Qualquer">Qualquer Moeda</option><option value="WC">WC (WCoins)</option><option value="HP">HP (Hunt Points)</option><option value="CREDITOS">Créditos Web</option><option value="ZEN">Zen</option></select><input type="number" id="radar-preco" placeholder="Valor máximo (opcional)" class="w-full bg-gray-900/90 border border-gray-700/80 rounded-xl p-2.5 text-white text-sm"><button type="submit" class="w-full bg-gradient-to-r from-amber-600 via-red-600 to-amber-500 font-extrabold py-3 rounded-xl text-black text-xs uppercase tracking-wider"><i class="fa-solid fa-radar mr-1"></i>Ativar Radar de Caça</button></form></div><div class="glass-panel rounded-2xl p-5 shadow-2xl"><h3 class="font-gamer text-lg font-bold text-gray-200 mb-2 border-b border-gray-800 pb-2 flex justify-between"><span>Desejos Cadastrados</span><span id="total-radars" class="text-xs bg-amber-950 text-amber-400 border border-amber-700/50 px-2 py-0.5 rounded-lg">0</span></h3><div id="lista-radars-ativos" class="space-y-2 max-h-64 overflow-y-auto"></div></div></div>
+        <div class="lg:col-span-3 space-y-4"><div class="glass-panel rounded-2xl p-4 flex flex-col sm:flex-row justify-between items-center gap-3"><div class="flex items-center space-x-3"><h2 class="font-gamer text-xl font-bold text-white tracking-wider uppercase"><i class="fa-solid fa-list-check mr-2 text-amber-400"></i>Achados no Market</h2><div id="status-scanner-mulotus" class="text-xs bg-gray-950 px-2.5 py-1 rounded-lg border border-gray-800"><span class="text-emerald-400 font-bold">Conectado em Tempo Real</span></div></div><div class="flex space-x-2"><button onclick="escanearMercadoMuLotus()" class="text-xs bg-amber-600 text-black font-extrabold px-3 py-2 rounded-xl"><i class="fa-solid fa-arrows-rotate mr-1"></i>Sincronizar</button><button onclick="solicitarPermissaoNotificacao()" class="text-xs bg-gray-900 text-amber-400 font-bold px-3 py-2 rounded-xl border border-gray-700"><i class="fa-solid fa-bell mr-1"></i>Som de Alerta</button></div></div><div id="barra-foco-desejo" class="hidden bg-amber-500/10 border border-amber-500/30 rounded-xl p-3 flex justify-between items-center text-xs text-amber-300"><span>Mostrando ofertas de: <b id="nome-item-foco" class="text-white font-gamer text-sm"></b></span><button onclick="limparFocoDesejo()" class="bg-gray-900 text-gray-300 px-3 py-1 rounded-lg border border-gray-700 font-bold">Ver Todos</button></div><div id="grid-achados-radar" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4"></div></div>
     </main>
 
-    <script src="js/supabase.js"></script>
-    <script src="js/session.js"></script>
-    <script src="js/config.js"></script>
-    <script src="js/mercado.js"></script>
+    <main id="secao-mercado-global" class="hidden flex-1 container mx-auto p-6 space-y-6"><div class="glass-panel rounded-2xl p-5 flex flex-col sm:flex-row gap-4"><div class="flex-1 relative"><i class="fa-solid fa-magnifying-glass absolute left-4 top-3.5 text-gray-400"></i><input type="text" id="busca-global-item" oninput="filtrarMercadoGlobal()" placeholder="Buscar qualquer item listado no Mu Lotus..." class="w-full bg-gray-900 border border-gray-700 rounded-xl p-3 pl-11 text-white text-sm"></div><select id="filtro-global-moeda" onchange="filtrarMercadoGlobal()" class="bg-gray-900 border border-gray-700 rounded-xl p-3 text-amber-300 text-sm"><option value="TODAS">Todas as moedas</option><option value="WC">WC</option><option value="HP">HP</option><option value="CREDITOS">Créditos</option><option value="ZEN">Zen</option></select></div><div id="grid-mercado-global" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4"></div></main>
+
+    <main id="secao-graficos-precos" class="hidden flex-1 container mx-auto p-6 grid grid-cols-1 lg:grid-cols-3 gap-6"><div class="glass-panel rounded-2xl p-5 lg:col-span-2"><h2 class="font-gamer text-xl font-bold text-amber-400 mb-4"><i class="fa-solid fa-chart-line mr-2"></i>Histórico de Preços</h2><div class="relative h-[320px]"><canvas id="grafico-precos"></canvas><canvas id="graficoPrecosMedios" class="hidden"></canvas></div></div><div class="glass-panel rounded-2xl p-5"><h2 class="font-gamer text-xl font-bold text-red-400 mb-4"><i class="fa-solid fa-chart-pie mr-2"></i>Distribuição por Moeda</h2><div class="relative h-[240px]"><canvas id="graficoDistribuicaoMoedas"></canvas></div><h3 class="font-gamer text-lg font-bold text-gray-200 mt-6 mb-3">Médias Cadastradas</h3><div id="lista-medias-precos" class="space-y-2"></div></div></main>
+
+    <script src="js/supabase.js"></script><script src="js/session.js"></script><script src="js/config.js"></script><script src="js/mercado.js"></script>
 </body>
 </html>

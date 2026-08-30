@@ -5,6 +5,11 @@ let radarsDoUsuario = [];
 let termoFiltroDesejo = null;
 let focoDesejo = '';
 let scannerTimer = null;
+let itensMercadoAtuais = [];
+let graficoPrecos = null;
+let todosItensCapturados = [];
+let chartInstanciaLine = null;
+let chartInstanciaPie = null;
 const ultimosItensVistos = new Set();
 const FAVORITOS_LOCAL_KEY = 'mercado_alertas_vip';
 const ITENS_LOCAL_KEY = 'mercado_itens_vip';
@@ -278,11 +283,105 @@ function renderizarRadarsAtivos() {
 
 async function carregarItensMercadoCards() {
   const itens = await buscarItens();
+  itensMercadoAtuais = itens;
+  todosItensCapturados = itens;
   renderizarFiltrosMoeda(itens);
   renderizarCards(itens);
+  renderizarMercadoGlobal(itens);
+  renderizarMediasPrecos();
 }
 
 const carregarItensMercado = carregarItensMercadoCards;
+
+function mudarAbaMercado(aba) {
+  const secoes = {
+    radar: document.getElementById('secao-radar-vip'),
+    global: document.getElementById('secao-mercado-global'),
+    graficos: document.getElementById('secao-graficos-precos') || document.getElementById('secao-graficos')
+  };
+  Object.entries(secoes).forEach(([nome, secao]) => {
+    if (secao) secao.classList.toggle('hidden', nome !== aba);
+  });
+
+  ['radar', 'global', 'graficos'].forEach((nome) => {
+    const botao = document.getElementById(`btn-aba-${nome}`);
+    if (!botao) return;
+    botao.className = nome === aba
+      ? 'flex-1 min-w-[190px] py-3 px-4 rounded-xl font-gamer font-bold text-sm transition flex items-center justify-center space-x-2 bg-gradient-to-r from-red-600 to-amber-600 text-white shadow-lg'
+      : 'flex-1 min-w-[190px] py-3 px-4 rounded-xl font-gamer font-bold text-sm transition bg-gray-900 text-gray-400 hover:text-white border border-gray-800';
+  });
+
+  if (aba === 'graficos') renderizarGraficosAnaliticos();
+}
+
+async function carregarMercadoGlobal() {
+  const itens = await buscarItens();
+  todosItensCapturados = itens;
+  itensMercadoAtuais = itens;
+  filtrarMercadoGlobal();
+}
+
+function renderizarMercadoGlobal(itens = itensMercadoAtuais) {
+  const container = document.getElementById('grid-mercado-global');
+  if (!container) return;
+  const termo = document.getElementById('busca-global-item')?.value.trim().toLowerCase() || '';
+  const moeda = document.getElementById('filtro-moeda-global')?.value || document.getElementById('filtro-global-moeda')?.value || 'TODAS';
+  const filtrados = itens.filter((item) => {
+    const correspondeNome = !termo || testarMatchInteligente(item.nome_item, termo);
+    const correspondeMoeda = moeda === 'TODAS' || item.moeda === moeda;
+    return correspondeNome && correspondeMoeda;
+  });
+
+  container.innerHTML = filtrados.length
+    ? filtrados.map((item) => `<article class="market-card glass-panel rounded-2xl p-4 flex flex-col justify-between"><div><span class="text-[10px] uppercase text-gray-500">${item.categoria}</span><h3 class="font-gamer text-xl font-bold text-white mt-2">${item.nome_item}</h3><p class="text-xs text-gray-400 mt-2">${item.vendedor}</p></div><div class="mt-4 pt-3 border-t border-gray-800 flex justify-between items-center"><strong class="text-amber-300">${item.preco} ${formatarNomeMoeda(item.moeda)}</strong><a href="${item.link_anuncio}" target="_blank" rel="noopener noreferrer" class="text-xs bg-amber-600 text-black font-bold px-2.5 py-1.5 rounded-lg">Ver</a></div></article>`).join('')
+    : '<div class="col-span-full text-center text-gray-500 border border-dashed border-gray-700 rounded-2xl p-8">Nenhum item corresponde à busca.</div>';
+}
+
+function filtrarMercadoGlobal() {
+  renderizarMercadoGlobal();
+}
+
+function renderizarMediasPrecos() {
+  const lista = document.getElementById('lista-medias-precos');
+  if (!lista) return;
+  const medias = Object.entries(historicoMedias);
+  lista.innerHTML = medias.length
+    ? medias.map(([nome, preco]) => `<div class="bg-gray-900/80 border border-gray-800 rounded-xl p-3 flex justify-between gap-3"><span class="text-sm text-gray-300">${nome}</span><strong class="text-amber-300 text-sm">${preco}</strong></div>`).join('')
+    : '<p class="text-sm text-gray-500">Nenhum histórico disponível.</p>';
+}
+
+function renderizarGraficoPrecos() {
+  const canvas = document.getElementById('grafico-precos') || document.getElementById('graficoPrecosMedios');
+  if (!canvas || typeof Chart === 'undefined') return;
+  const entradas = Object.entries(historicoMedias);
+  if (graficoPrecos) graficoPrecos.destroy();
+  graficoPrecos = new Chart(canvas, {
+    type: 'bar',
+    data: {
+      labels: entradas.map(([nome]) => nome),
+      datasets: [{ label: 'Preço médio', data: entradas.map(([, preco]) => preco), backgroundColor: 'rgba(245, 158, 11, 0.7)', borderColor: 'rgb(245, 158, 11)', borderWidth: 1 }]
+    },
+    options: { responsive: true, maintainAspectRatio: false, scales: { x: { ticks: { color: '#9ca3af' }, grid: { color: 'rgba(75,85,99,.25)' } }, y: { ticks: { color: '#9ca3af' }, grid: { color: 'rgba(75,85,99,.25)' } } }, plugins: { legend: { labels: { color: '#e5e7eb' } } } }
+  });
+}
+
+function renderizarGraficosAnaliticos() {
+  renderizarGraficoPrecos();
+  const canvas = document.getElementById('graficoDistribuicaoMoedas');
+  if (!canvas || typeof Chart === 'undefined') return;
+  const contagem = {};
+  todosItensCapturados.forEach((item) => {
+    const moeda = formatarNomeMoeda(item.moeda);
+    contagem[moeda] = (contagem[moeda] || 0) + 1;
+  });
+  const labels = Object.keys(contagem);
+  if (chartInstanciaPie) chartInstanciaPie.destroy();
+  chartInstanciaPie = new Chart(canvas, {
+    type: 'doughnut',
+    data: { labels, datasets: [{ data: Object.values(contagem), backgroundColor: ['#f59e0b', '#a855f7', '#10b981', '#eab308', '#06b6d4'] }] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#9ca3af' } } } }
+  });
+}
 
 async function publicarItem(event) {
   event.preventDefault();
@@ -391,7 +490,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('form-favorito')?.addEventListener('submit', criarFavorito);
   document.getElementById('form-radar-desejo')?.addEventListener('submit', criarFavorito);
   document.getElementById('form-postar-item')?.addEventListener('submit', publicarItem);
-  if (window.db && typeof window.db.channel === 'function') window.db.channel('radar_realtime').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'mercado_itens' }, (payload) => { carregarItensMercadoCards(); verificarMatchEAlerta(payload.new); }).subscribe();
+  if (window.db && typeof window.db.channel === 'function') window.db.channel('radar_realtime').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'mercado_itens' }, (payload) => { carregarItensMercadoCards(); carregarMercadoGlobal(); verificarMatchEAlerta(payload.new); }).subscribe();
   window.solicitarPermissaoNotificacao = solicitarPermissaoNotificacao;
 });
 
