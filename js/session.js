@@ -177,3 +177,9 @@ function atualizarNavbar(usuario) {
 
   navContainer.innerHTML = htmlLinks;
 }
+
+SELECT indexname, indexdef
+FROM pg_indexes
+WHERE schemaname = 'public'
+  AND tablename = 'eventos'
+  AND indexname = 'eventos_nome_unique';
