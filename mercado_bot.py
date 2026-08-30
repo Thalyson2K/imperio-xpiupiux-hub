@@ -8,14 +8,10 @@ from typing import Any
 from bs4 import BeautifulSoup
 
 
-SUPABASE_URL = os.environ.get(
-    "SUPABASE_URL",
-    "https://zvtammcfyqcrjgoovvyt.supabase.co",
-).rstrip("/")
-SUPABASE_KEY = os.environ.get(
-    "SUPABASE_ANON_KEY",
-    "sb_publishable_iXbUaclnDaI6d0mRQKbe5Q_LwDkid9Z",
-)
+DEFAULT_SUPABASE_URL = "https://zvtammcfyqcrjgoovvyt.supabase.co"
+DEFAULT_SUPABASE_KEY = "sb_publishable_iXbUaclnDaI6d0mRQKbe5Q_LwDkid9Z"
+SUPABASE_URL = (os.environ.get("SUPABASE_URL") or DEFAULT_SUPABASE_URL).rstrip("/")
+SUPABASE_KEY = os.environ.get("SUPABASE_ANON_KEY") or DEFAULT_SUPABASE_KEY
 MARKET_URL = "https://mulotus.net/market/items"
 REQUEST_HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120 Safari/537.36"
@@ -131,8 +127,16 @@ def executar_bot_mulotus() -> int:
 
     itens = extrair_itens(html_page)
     print(f"[+] Encontrados {len(itens)} elementos de mercado na página.")
-    enviados = sum(enviar_para_supabase(item) for item in itens)
-    print(f"[+] Publicados {enviados} de {len(itens)} itens capturados.")
+    itens_unicos = []
+    vistos = set()
+    for item in itens:
+        chave = (item["nome_item"], item["preco"], item["moeda"], item["vendedor"])
+        if chave not in vistos:
+            vistos.add(chave)
+            itens_unicos.append(item)
+
+    enviados = sum(enviar_para_supabase(item) for item in itens_unicos)
+    print(f"[+] Publicados {enviados} de {len(itens_unicos)} itens únicos capturados.")
     return 0
 
 
