@@ -181,17 +181,17 @@ async function carregarMembrosGestao() {
   const tabela = document.getElementById('tabela-membros-gestao');
   if (!tabela) return;
 
-  let membros = MEMBERS.map(normalizarMembro).filter((membro) => membro.approved || membro.status === 'aprovado');
+  let membros = MEMBERS.map(normalizarMembro).filter((membro) => !membro.is_admin);
   if (window.db && typeof window.db.from === 'function') {
     try {
-      const resultado = await window.db.from('membros').select('*').eq('status', 'aprovado');
+      const resultado = await window.db.from('membros').select('*').neq('is_admin', true).order('nick', { ascending: true });
       if (resultado.data) membros = resultado.data.map(normalizarMembro);
     } catch (error) {
       console.warn('Não foi possível carregar membros do Supabase.', error);
     }
   }
 
-  tabela.innerHTML = membros.map((membro) => `<tr class="hover:bg-gray-800/40 border-b border-gray-800"><td class="p-3 font-bold text-white">${membro.nick}</td><td class="p-3 text-gray-400">${membro.cargo || 'Membro'}</td><td class="p-3 text-green-400 font-bold text-xs">APROVADO</td><td class="p-3 text-center"><button type="button" onclick="alternarMercado('${membro.id}', ${Boolean(membro.acesso_mercado)})" class="text-xs px-3 py-1 rounded font-bold ${membro.acesso_mercado ? 'bg-amber-600 text-black' : 'bg-gray-700 text-gray-400'}">${membro.acesso_mercado ? '⭐ Radar VIP Ativo' : 'Conceder Radar VIP'}</button></td></tr>`).join('');
+  tabela.innerHTML = membros.map((membro) => `<tr class="hover:bg-gray-800/40 border-b border-gray-800 transition"><td class="p-3 font-bold text-white">${membro.nick}</td><td class="p-3 text-gray-400 text-xs">${membro.classe || 'Não informada'}</td><td class="p-3 text-gray-400 text-xs">${membro.cargo || 'Membro'}</td><td class="p-3"><span class="text-[10px] px-2 py-0.5 rounded font-bold ${membro.status === 'aprovado' ? 'bg-green-950 text-green-400 border border-green-700' : 'bg-red-950 text-red-400 border border-red-700'}">${String(membro.status || 'pendente').toUpperCase()}</span></td><td class="p-3 text-center"><button type="button" onclick="alternarMercado('${membro.id}', ${Boolean(membro.acesso_mercado)})" class="text-xs px-3 py-1 rounded-lg font-bold transition ${membro.acesso_mercado ? 'bg-amber-600 hover:bg-amber-700 text-black' : 'bg-gray-800 hover:bg-gray-700 text-gray-400 border border-gray-700'}">${membro.acesso_mercado ? '⭐ Radar VIP' : '+ Dar Radar VIP'}</button></td><td class="p-3 text-center space-x-2">${membro.status === 'aprovado' ? `<button type="button" onclick="revogarAcesso('${membro.id}', '${membro.nick}')" class="bg-amber-600/20 hover:bg-amber-600/40 text-amber-300 border border-amber-600/50 text-xs px-2.5 py-1 rounded-lg font-bold"><i class="fa-solid fa-ban mr-1"></i> Bloquear</button>` : `<button type="button" onclick="alterarStatusMembro('${membro.id}', 'aprovado')" class="bg-green-600/20 hover:bg-green-600/40 text-green-300 border border-green-600/50 text-xs px-2.5 py-1 rounded-lg font-bold"><i class="fa-solid fa-unlock mr-1"></i> Desbloquear</button>`}<button type="button" onclick="excluirMembro('${membro.id}', '${membro.nick}')" class="bg-red-600/20 hover:bg-red-600/40 text-red-400 border border-red-600/50 text-xs px-2.5 py-1 rounded-lg font-bold"><i class="fa-solid fa-trash-can mr-1"></i> Excluir</button></td></tr>`).join('');
 }
 
 async function alternarMercado(id, statusAtual) {
@@ -206,6 +206,65 @@ async function alternarMercado(id, statusAtual) {
   const membro = MEMBERS.find((item) => String(item.id) === String(id));
   if (membro) membro.acesso_mercado = !statusAtual;
   carregarMembrosGestao();
+}
+
+async function alternarModeracao(id, statusAtual) {
+  if (window.db && typeof window.db.from === 'function') {
+    try {
+      await window.db.from('membros').update({ moderador: !statusAtual }).eq('id', id);
+    } catch (error) {
+      console.warn('Não foi possível atualizar a moderação GM.', error);
+    }
+  }
+
+  const membro = MEMBERS.find((item) => String(item.id) === String(id));
+  if (membro) membro.moderador = !statusAtual;
+  carregarMembrosGestao();
+}
+
+async function revogarAcesso(idMembro, nickMembro) {
+  if (!confirm(`Tem certeza que deseja BLOQUEAR o acesso do membro "${nickMembro}" ao Hub?`)) return;
+
+  let sucesso = false;
+  if (window.db && typeof window.db.from === 'function') {
+    try {
+      const { error } = await window.db.from('membros').update({ status: 'rejeitado', approved: false, acesso_mercado: false }).eq('id', idMembro);
+      sucesso = !error;
+    } catch (error) {
+      console.warn('Não foi possível bloquear o membro no Supabase.', error);
+    }
+  }
+
+  const membro = MEMBERS.find((item) => String(item.id) === String(idMembro));
+  if (membro) Object.assign(membro, { status: 'rejeitado', approved: false, acesso_mercado: false });
+  if (sucesso || membro) {
+    alert(`Acesso do membro ${nickMembro} bloqueado com sucesso!`);
+    carregarMembrosGestao();
+  }
+}
+
+async function excluirMembro(idMembro, nickMembro) {
+  if (!confirm(`🚨 ATENÇÃO: excluir permanentemente o membro "${nickMembro}"?`)) return;
+
+  let sucesso = false;
+  if (window.db && typeof window.db.from === 'function') {
+    try {
+      const { error } = await window.db.from('membros').delete().eq('id', idMembro);
+      sucesso = !error;
+    } catch (error) {
+      console.warn('Não foi possível excluir o membro no Supabase.', error);
+    }
+  }
+
+  const index = MEMBERS.findIndex((item) => String(item.id) === String(idMembro));
+  if (index >= 0) {
+    MEMBERS.splice(index, 1);
+    sucesso = true;
+  }
+  if (sucesso) {
+    alert(`Membro "${nickMembro}" excluído permanentemente do Hub!`);
+    carregarMembrosGestao();
+  }
 }
 
 function bindMemberActions() {
