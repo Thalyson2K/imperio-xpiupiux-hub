@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Acesso Restrito GM - Império XPiuPiuX</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  </head>
+  <body class="bg-gray-950 text-gray-100 font-sans min-h-screen flex flex-col justify-center items-center p-4">
+    <div class="bg-gray-900 border-2 border-amber-600/60 rounded-2xl p-8 max-w-md w-full shadow-2xl shadow-amber-950/30">
+      <div class="text-center mb-6">
+        <i class="fa-solid fa-crown text-amber-400 text-5xl mb-3 animate-pulse"></i>
+        <h1 class="text-2xl font-black text-amber-400 tracking-wider">PORTAL ADMINISTRADOR</h1>
+        <p class="text-xs text-gray-400 mt-1 uppercase font-semibold">Império XPiuPiuX - Guild Master</p>
+      </div>
+
+      <form id="form-admin-login" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold uppercase text-amber-400/90 mb-1">E-mail do Administrador</label>
+          <input type="email" id="adm-email" required placeholder="admin@imperio.com" class="w-full bg-gray-800 border border-amber-600/40 rounded-lg p-3 text-white text-sm focus:outline-none focus:border-amber-400" />
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold uppercase text-amber-400/90 mb-1">Senha Mestre</label>
+          <input type="password" id="adm-senha" required placeholder="******" class="w-full bg-gray-800 border border-amber-600/40 rounded-lg p-3 text-white text-sm focus:outline-none focus:border-amber-400" />
+        </div>
+
+        <button type="submit" class="w-full bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-700 hover:to-amber-600 text-black font-extrabold py-3 rounded-lg transition shadow-lg flex justify-center items-center space-x-2">
+          <i class="fa-solid fa-key"></i>
+          <span>ENTRAR NO PAINEL GM</span>
+        </button>
+      </form>
+
+      <div id="msg-admin" class="mt-4 text-center text-sm hidden"></div>
+
+      <div class="mt-6 text-center text-xs text-gray-500 border-t border-gray-800 pt-4">
+        <a href="index.html" class="text-gray-400 hover:text-white"><i class="fa-solid fa-arrow-left mr-1"></i> Voltar ao Hub Principal</a>
+      </div>
+    </div>
+
+    <script src="js/supabase.js"></script>
+    <script src="js/config.js"></script>
+    <script src="js/session.js"></script>
+    <script>
+      document.getElementById('form-admin-login').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const email = document.getElementById('adm-email').value.trim();
+        const senha = document.getElementById('adm-senha').value.trim();
+        const msg = document.getElementById('msg-admin');
+
+        msg.className = 'mt-4 text-center text-sm text-amber-400 font-bold block';
+        msg.innerText = '⏳ Autenticando Administrador...';
+
+        let admin = null;
+
+        if (window.db && typeof window.db.from === 'function') {
+          try {
+            const { data, error } = await window.db.from('membros').select('*').eq('email', email).eq('senha', senha).eq('is_admin', true).single();
+            if (!error && data) {
+              admin = data;
+            }
+          } catch (err) {
+            admin = null;
+          }
+        }
+
+        if (!admin) {
+          admin = MEMBERS.find((member) => member.email === email && member.password === senha && (member.is_admin || member.role === 'admin')) || null;
+        }
+
+        if (!admin) {
+          msg.className = 'mt-4 text-center text-sm text-red-500 font-bold block';
+          msg.innerText = '❌ Acesso Negado! Credenciais inválidas para conta de Administrador.';
+          return;
+        }
+
+        const nick = admin.nick || admin.name || 'Guild Master';
+        localStorage.setItem('usuario_logado', JSON.stringify({ ...admin, nick, is_admin: true }));
+        saveAdminSession({ id: admin.id || Date.now(), name: nick, email: admin.email, role: 'admin' });
+
+        msg.className = 'mt-4 text-center text-sm text-green-400 font-bold block';
+        msg.innerText = `👑 Seja bem-vindo, Guild Master ${nick}!`;
+
+        setTimeout(() => {
+          window.location.href = 'admin.html';
+        }, 1000);
+      });
+    </script>
+  </body>
+</html>

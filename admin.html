@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Painel do Administrador - Império XPiuPiuX</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  </head>
+  <body class="bg-gray-950 text-gray-100 font-sans min-h-screen">
+    <nav class="bg-gray-900 border-b border-red-900/40 px-6 py-4 flex justify-between items-center shadow-lg">
+      <div class="flex items-center space-x-2">
+        <i class="fa-solid fa-crown text-amber-400 text-xl"></i>
+        <span class="font-bold text-lg text-white">Painel do Guild Master / Admin</span>
+      </div>
+      <div id="header-nav" class="flex space-x-6 text-sm font-semibold"></div>
+    </nav>
+
+    <main class="container mx-auto p-6 max-w-5xl space-y-6">
+      <div class="bg-gray-900 border border-gray-800 rounded-xl p-6 shadow-xl">
+        <h2 class="text-xl font-bold text-amber-400 mb-4 flex items-center">
+          <i class="fa-solid fa-user-clock mr-2"></i> Solicitações Pendentes de Entrada
+        </h2>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-sm text-gray-300">
+            <thead class="bg-gray-800/80 uppercase text-xs text-red-400">
+              <tr>
+                <th class="p-3">Nick</th>
+                <th class="p-3">Classe</th>
+                <th class="p-3">E-mail</th>
+                <th class="p-3">Data</th>
+                <th class="p-3 text-center">Ação</th>
+              </tr>
+            </thead>
+            <tbody id="tabela-pendentes" class="divide-y divide-gray-800"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="bg-gray-900 border border-gray-800 rounded-xl p-6 shadow-xl">
+        <h2 class="text-xl font-bold text-red-400 mb-4 flex items-center">
+          <i class="fa-solid fa-users-gear mr-2"></i> Gerenciamento de Membros & Permissões
+        </h2>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-sm text-gray-300">
+            <thead class="bg-gray-800/80 uppercase text-xs text-amber-400">
+              <tr>
+                <th class="p-3">Nick</th>
+                <th class="p-3">Cargo</th>
+                <th class="p-3">Status</th>
+                <th class="p-3 text-center">Mercado VIP</th>
+              </tr>
+            </thead>
+            <tbody id="tabela-membros-gestao" class="divide-y divide-gray-800"></tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+
+    <script src="js/supabase.js"></script>
+    <script src="js/config.js"></script>
+    <script src="js/session.js"></script>
+    <script src="js/auth.js"></script>
+    <script>
+      function obterUsuarioLogado() {
+        const raw = localStorage.getItem('usuario_logado');
+        return raw ? JSON.parse(raw) : null;
+      }
+
+      function carregarPendentes() {
+        const tbody = document.getElementById('tabela-pendentes');
+        if (!tbody) return;
+
+        const pendentes = PENDING_MEMBERS.length ? PENDING_MEMBERS : [
+          { id: 1, name: 'Nenhuma', className: '—', email: 'Sem solicitações', date: '—' }
+        ];
+
+        tbody.innerHTML = pendentes.map((member) => `
+          <tr>
+            <td class="p-3 font-semibold text-white">${member.name}</td>
+            <td class="p-3">${member.className}</td>
+            <td class="p-3">${member.email}</td>
+            <td class="p-3">${member.date || 'Hoje'}</td>
+            <td class="p-3 text-center">
+              ${member.email === 'Sem solicitações' ? '<span class="text-gray-500">—</span>' : `<div class="flex justify-center gap-2"><button type="button" class="bg-green-600 hover:bg-green-500 text-white px-2 py-1 rounded text-xs" data-approve="${member.id}">Aprovar</button><button type="button" class="bg-red-600 hover:bg-red-500 text-white px-2 py-1 rounded text-xs" data-reject="${member.id}">Rejeitar</button></div>`}
+            </td>
+          </tr>
+        `).join('');
+
+        tbody.querySelectorAll('[data-approve]').forEach((button) => {
+          button.addEventListener('click', () => {
+            const id = Number(button.dataset.approve);
+            const member = PENDING_MEMBERS.find((item) => item.id === id);
+            if (!member) return;
+            const approvedMember = { ...member, approved: true, status: 'aprovado', role: 'member', is_admin: false, password: member.password || '123456' };
+            MEMBERS.push({ ...approvedMember, name: member.name, className: member.className, email: member.email, level: member.level || 150 });
+            const index = PENDING_MEMBERS.findIndex((item) => item.id === id);
+            if (index >= 0) PENDING_MEMBERS.splice(index, 1);
+            carregarPendentes();
+            carregarMembrosGestao();
+          });
+        });
+
+        tbody.querySelectorAll('[data-reject]').forEach((button) => {
+          button.addEventListener('click', () => {
+            const id = Number(button.dataset.reject);
+            const index = PENDING_MEMBERS.findIndex((item) => item.id === id);
+            if (index >= 0) PENDING_MEMBERS.splice(index, 1);
+            carregarPendentes();
+          });
+        });
+      }
+
+      function carregarMembrosGestao() {
+        const tbody = document.getElementById('tabela-membros-gestao');
+        if (!tbody) return;
+
+        const lista = MEMBERS.map((member) => ({
+          nick: member.name || member.nick || 'Sem nome',
+          cargo: member.is_admin ? 'Guild Master' : 'Membro',
+          status: member.approved || member.status === 'aprovado' ? 'Ativo' : 'Pendente',
+          vip: member.is_admin ? '—' : '<button class="bg-amber-500 hover:bg-amber-400 text-black px-2 py-1 rounded text-xs" type="button">Ativar</button>'
+        }));
+
+        tbody.innerHTML = lista.map((member) => `
+          <tr>
+            <td class="p-3 font-semibold text-white">${member.nick}</td>
+            <td class="p-3">${member.cargo}</td>
+            <td class="p-3">${member.status}</td>
+            <td class="p-3 text-center">${member.vip}</td>
+          </tr>
+        `).join('');
+      }
+
+      document.addEventListener('DOMContentLoaded', () => {
+        const usuario = obterUsuarioLogado();
+        if (!usuario || !(usuario.is_admin || usuario.role === 'admin')) {
+          alert('⛔ Acesso Negado! Esta área é exclusiva para o Administrador.');
+          window.location.href = 'admin-login.html';
+          return;
+        }
+
+        renderHeaderNav();
+        carregarPendentes();
+        carregarMembrosGestao();
+      });
+    </script>
+  </body>
+</html>

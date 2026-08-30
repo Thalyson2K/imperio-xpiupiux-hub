@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cadastro - Império XPiuPiuX</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  </head>
+  <body class="bg-gray-950 text-gray-100 font-sans min-h-screen flex flex-col justify-center items-center p-4">
+    <div class="bg-gray-900 border border-gray-800 rounded-2xl p-8 max-w-md w-full shadow-2xl shadow-red-950/20">
+      <div class="text-center mb-6">
+        <i class="fa-solid fa-shield-halved text-red-500 text-4xl mb-2"></i>
+        <h1 class="text-2xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-amber-500">
+          IMPÉRIO XPIUPIUX
+        </h1>
+        <p class="text-xs text-gray-400 mt-1">Solicitação de Acesso ao Guild Hub</p>
+      </div>
+
+      <form id="form-cadastro" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold uppercase text-gray-400 mb-1">Nick Exato no Mu Lotus</label>
+          <input type="text" id="cad-nick" required placeholder="Ex: Wiloow_BK" class="w-full bg-gray-800 border border-gray-700 rounded-lg p-3 text-white focus:outline-none focus:border-red-500" />
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold uppercase text-gray-400 mb-1">Classe</label>
+          <select id="cad-classe" class="w-full bg-gray-800 border border-gray-700 rounded-lg p-3 text-white focus:outline-none focus:border-red-500">
+            <option value="Blade Knight">Blade Knight (BK)</option>
+            <option value="Soul Master">Soul Master (SM)</option>
+            <option value="Muse Elf">Muse Elf (ELF)</option>
+            <option value="Dark Lord">Dark Lord (DL)</option>
+            <option value="Magic Gladiator">Magic Gladiator (MG)</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold uppercase text-gray-400 mb-1">E-mail</label>
+          <input type="email" id="cad-email" required placeholder="seuemail@exemplo.com" class="w-full bg-gray-800 border border-gray-700 rounded-lg p-3 text-white focus:outline-none focus:border-red-500" />
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold uppercase text-gray-400 mb-1">Senha</label>
+          <input type="password" id="cad-senha" required placeholder="******" class="w-full bg-gray-800 border border-gray-700 rounded-lg p-3 text-white focus:outline-none focus:border-red-500" />
+        </div>
+
+        <button type="submit" class="w-full bg-gradient-to-r from-red-600 to-amber-600 hover:from-red-700 hover:to-amber-700 text-white font-bold py-3 rounded-lg transition shadow-lg">
+          Solicitar Entrada na Guild
+        </button>
+      </form>
+
+      <div id="msg-cadastro" class="mt-4 text-center text-sm hidden"></div>
+
+      <div class="mt-6 text-center text-xs text-gray-500 border-t border-gray-800 pt-4">
+        Já é membro aprovado? <a href="login.html" class="text-red-400 hover:underline">Fazer Login</a>
+      </div>
+    </div>
+
+    <script src="js/supabase.js"></script>
+    <script src="js/config.js"></script>
+    <script src="js/session.js"></script>
+    <script src="js/auth.js"></script>
+  </body>
+</html>

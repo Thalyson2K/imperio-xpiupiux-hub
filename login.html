@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login - Império XPiuPiuX</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  </head>
+  <body class="bg-gray-950 text-gray-100 font-sans min-h-screen flex flex-col justify-center items-center p-4">
+    <div class="bg-gray-900 border border-gray-800 rounded-2xl p-8 max-w-md w-full shadow-2xl shadow-red-950/20">
+      <div class="text-center mb-6">
+        <i class="fa-solid fa-shield-halved text-red-500 text-4xl mb-2"></i>
+        <h1 class="text-2xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-amber-500">
+          IMPÉRIO XPIUPIUX
+        </h1>
+        <p class="text-xs text-gray-400 mt-1">Área Restrita da Guild</p>
+      </div>
+
+      <form id="form-login" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold uppercase text-gray-400 mb-1">E-mail</label>
+          <input type="email" id="login-email" required placeholder="seuemail@exemplo.com" class="w-full bg-gray-800 border border-gray-700 rounded-lg p-3 text-white focus:outline-none focus:border-red-500" />
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold uppercase text-gray-400 mb-1">Senha</label>
+          <input type="password" id="login-senha" required placeholder="******" class="w-full bg-gray-800 border border-gray-700 rounded-lg p-3 text-white focus:outline-none focus:border-red-500" />
+        </div>
+
+        <button type="submit" class="w-full bg-gradient-to-r from-red-600 to-amber-600 hover:from-red-700 hover:to-amber-700 text-white font-bold py-3 rounded-lg transition shadow-lg shadow-red-950/50">
+          Entrar no Hub
+        </button>
+      </form>
+
+      <div id="msg-login" class="mt-4 text-center text-sm hidden"></div>
+
+      <div class="mt-6 text-center text-xs text-gray-500 border-t border-gray-800 pt-4 flex justify-between">
+        <a href="cadastro.html" class="text-amber-400 hover:underline">Pedir Acesso</a>
+        <a href="admin-login.html" class="text-red-400 hover:underline">Acesso GM</a>
+      </div>
+    </div>
+
+    <script src="js/supabase.js"></script>
+    <script src="js/config.js"></script>
+    <script src="js/session.js"></script>
+    <script>
+      document.getElementById('form-login').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const email = document.getElementById('login-email').value.trim();
+        const senha = document.getElementById('login-senha').value.trim();
+        const msg = document.getElementById('msg-login');
+
+        msg.className = 'mt-4 text-center text-sm text-amber-400 block';
+        msg.innerText = '⏳ Autenticando...';
+
+        const findUser = () => {
+          const user = MEMBERS.find((member) => member.email === email && member.password === senha && member.approved);
+          return user || null;
+        };
+
+        let usuario = null;
+
+        if (window.db && typeof window.db.from === 'function') {
+          try {
+            const { data, error } = await window.db.from('membros').select('*').eq('email', email).eq('senha', senha).single();
+            if (!error && data) {
+              usuario = data;
+            }
+          } catch (err) {
+            usuario = null;
+          }
+        }
+
+        if (!usuario) {
+          usuario = findUser();
+        }
+
+        if (!usuario) {
+          msg.className = 'mt-4 text-center text-sm text-red-500 font-bold block';
+          msg.innerText = '❌ E-mail ou senha incorretos!';
+          return;
+        }
+
+        const status = usuario.status || (usuario.approved ? 'aprovado' : 'pendente');
+        if (status !== 'aprovado') {
+          msg.className = 'mt-4 text-center text-sm text-amber-500 font-bold block';
+          msg.innerText = '⏳ Sua conta ainda está PENDENTE de aprovação pelo Guild Master.';
+          return;
+        }
+
+        const nick = usuario.nick || usuario.name || 'Membro';
+        const isAdmin = Boolean(usuario.is_admin || usuario.role === 'admin');
+
+        localStorage.setItem('usuario_logado', JSON.stringify({ ...usuario, nick, is_admin: isAdmin }));
+        saveSession({ id: usuario.id || Date.now(), name: nick, email: usuario.email, role: isAdmin ? 'admin' : 'member' });
+
+        msg.className = 'mt-4 text-center text-sm text-green-400 font-bold block';
+        msg.innerText = `✅ Bem-vindo, ${nick}! Entrando...`;
+
+        setTimeout(() => {
+          window.location.href = isAdmin ? 'admin.html' : 'index.html';
+        }, 1000);
+      });
+    </script>
+  </body>
+</html>
