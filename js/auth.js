@@ -129,6 +129,85 @@ function renderMarketAdmin() {
   `).join('');
 }
 
+async function carregarPendentes() {
+  const tabela = document.getElementById('tabela-pendentes');
+  if (!tabela) return;
+
+  let pendentes = PENDING_MEMBERS.map(normalizarMembro);
+  if (window.db && typeof window.db.from === 'function') {
+    try {
+      const resultado = await window.db.from('membros').select('*').eq('status', 'pendente').order('created_at', { ascending: false });
+      if (resultado.data) pendentes = resultado.data.map(normalizarMembro);
+    } catch (error) {
+      console.warn('Não foi possível carregar solicitações do Supabase.', error);
+    }
+  }
+
+  tabela.innerHTML = pendentes.length
+    ? pendentes.map((membro) => `<tr class="hover:bg-gray-800/40 border-b border-gray-800"><td class="p-3 font-bold text-white">${membro.nick}</td><td class="p-3 text-gray-400">${membro.classe}</td><td class="p-3 text-gray-400">${membro.email}</td><td class="p-3 text-xs text-gray-500">${membro.created_at ? new Date(membro.created_at).toLocaleDateString('pt-BR') : 'Hoje'}</td><td class="p-3 text-center space-x-2"><button type="button" onclick="alterarStatusMembro('${membro.id}', 'aprovado')" class="bg-green-600 hover:bg-green-700 text-white text-xs px-3 py-1 rounded font-bold">Aprovar</button><button type="button" onclick="alterarStatusMembro('${membro.id}', 'rejeitado')" class="bg-red-600 hover:bg-red-700 text-white text-xs px-3 py-1 rounded font-bold">Recusar</button></td></tr>`).join('')
+    : '<tr><td colspan="5" class="p-4 text-center text-gray-500">Nenhuma solicitação pendente no momento.</td></tr>';
+}
+
+async function alterarStatusMembro(id, novoStatus) {
+  let atualizado = false;
+  if (window.db && typeof window.db.from === 'function') {
+    try {
+      const { error } = await window.db.from('membros').update({ status: novoStatus, approved: novoStatus === 'aprovado' }).eq('id', id);
+      atualizado = !error;
+    } catch (error) {
+      console.warn('Não foi possível atualizar o membro no Supabase.', error);
+    }
+  }
+
+  const index = PENDING_MEMBERS.findIndex((membro) => String(membro.id) === String(id));
+  if (index >= 0) {
+    const membro = PENDING_MEMBERS.splice(index, 1)[0];
+    if (novoStatus === 'aprovado') {
+      const existente = MEMBERS.find((item) => String(item.id) === String(id));
+      if (existente) Object.assign(existente, { ...membro, approved: true, status: novoStatus });
+      else MEMBERS.push({ ...membro, approved: true, status: novoStatus });
+    }
+    atualizado = true;
+  }
+
+  if (atualizado) {
+    alert(`Membro ${novoStatus === 'aprovado' ? 'Aprovado' : 'Recusado'} com sucesso!`);
+    carregarPendentes();
+    carregarMembrosGestao();
+  }
+}
+
+async function carregarMembrosGestao() {
+  const tabela = document.getElementById('tabela-membros-gestao');
+  if (!tabela) return;
+
+  let membros = MEMBERS.map(normalizarMembro).filter((membro) => membro.approved || membro.status === 'aprovado');
+  if (window.db && typeof window.db.from === 'function') {
+    try {
+      const resultado = await window.db.from('membros').select('*').eq('status', 'aprovado');
+      if (resultado.data) membros = resultado.data.map(normalizarMembro);
+    } catch (error) {
+      console.warn('Não foi possível carregar membros do Supabase.', error);
+    }
+  }
+
+  tabela.innerHTML = membros.map((membro) => `<tr class="hover:bg-gray-800/40 border-b border-gray-800"><td class="p-3 font-bold text-white">${membro.nick}</td><td class="p-3 text-gray-400">${membro.cargo || 'Membro'}</td><td class="p-3 text-green-400 font-bold text-xs">APROVADO</td><td class="p-3 text-center"><button type="button" onclick="alternarMercado('${membro.id}', ${Boolean(membro.acesso_mercado)})" class="text-xs px-3 py-1 rounded font-bold ${membro.acesso_mercado ? 'bg-amber-600 text-black' : 'bg-gray-700 text-gray-400'}">${membro.acesso_mercado ? '⭐ Radar VIP Ativo' : 'Conceder Radar VIP'}</button></td></tr>`).join('');
+}
+
+async function alternarMercado(id, statusAtual) {
+  if (window.db && typeof window.db.from === 'function') {
+    try {
+      await window.db.from('membros').update({ acesso_mercado: !statusAtual }).eq('id', id);
+    } catch (error) {
+      console.warn('Não foi possível atualizar o acesso ao Radar VIP.', error);
+    }
+  }
+
+  const membro = MEMBERS.find((item) => String(item.id) === String(id));
+  if (membro) membro.acesso_mercado = !statusAtual;
+  carregarMembrosGestao();
+}
+
 function bindMemberActions() {
   document.querySelectorAll('[data-action]').forEach((button) => {
     button.addEventListener('click', () => {

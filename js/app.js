@@ -21,7 +21,7 @@ function renderizarBotoesFiltro() {
 
     header.innerHTML = `
         <button onclick="filtrarCategoria('todos')" class="px-2.5 py-1 rounded text-xs font-bold transition ${categoriaAtual === 'todos' ? 'bg-red-600 text-white' : 'bg-gray-800 text-gray-400'}">Todos</button>
-        <button onclick="filtrarCategoria('boss')" class="px-2.5 py-1 rounded text-xs font-bold transition ${categoriaAtual === 'boss' ? 'bg-red-600 text-white' : 'bg-gray-800 text-gray-400'}">👑 Bosses</button>
+        <button onclick="filtrarCategoria('boss')" class="px-2.5 py-1 rounded text-xs font-bold transition ${categoriaAtual === 'boss' ? 'bg-red-600 text-white' : 'bg-gray-800 text-gray-400'}">👑 Bosses Fase 2</button>
         <button onclick="filtrarCategoria('miniboss')" class="px-2.5 py-1 rounded text-xs font-bold transition ${categoriaAtual === 'miniboss' ? 'bg-red-600 text-white' : 'bg-gray-800 text-gray-400'}">⚔️ Mini Bosses</button>
         <button onclick="filtrarCategoria('evento')" class="px-2.5 py-1 rounded text-xs font-bold transition ${categoriaAtual === 'evento' ? 'bg-red-600 text-white' : 'bg-gray-800 text-gray-400'}">🏆 Eventos</button>
     `;
@@ -106,7 +106,7 @@ async function carregarRankingSupabase() {
 
     if (typeof db !== 'undefined' && db && typeof db.from === 'function') {
         try {
-            const { data: membros } = await db.from('membros').select('*');
+            const { data: membros } = await db.from('membros').select('*').eq('status', 'aprovado');
             const { data: presencas } = await db.from('presencas').select('nick');
 
             if (membros && membros.length) {
@@ -123,6 +123,12 @@ async function carregarRankingSupabase() {
                     ...m,
                     totalPresencas: contagemPresencas[m.nick] || 0
                 })).sort((a, b) => b.totalPresencas - a.totalPresencas || b.resets - a.resets);
+
+                if (!ranking.length) {
+                    tabela.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-gray-500">Aguardando aprovação de novos membros pelo Guild Master.</td></tr>';
+                    if (totalMembrosEl) totalMembrosEl.innerText = 0;
+                    return;
+                }
 
                 renderRankingTable(ranking);
                 return;

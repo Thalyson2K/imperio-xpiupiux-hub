@@ -106,12 +106,20 @@ function enforcePageAccess() {
   const session = obterUsuarioLogado() || getStoredSession();
   const adminSession = getStoredAdminSession();
 
-  if (['admin.html', 'mercado.html', 'presenca.html'].includes(path) && !(session || adminSession)) {
+  if (['index.html', 'presenca.html', 'admin.html', 'mercado.html'].includes(path) && !session && !adminSession) {
     window.location.href = 'login.html';
+    return;
   }
 
-  if (path === 'admin.html' && !(adminSession || (session && session.is_admin))) {
-    window.location.href = 'admin-login.html';
+  if (path === 'admin.html' && (!session || !session.is_admin)) {
+    alert('⛔ Acesso Negado! Área exclusiva do Guild Master.');
+    window.location.href = 'index.html';
+    return;
+  }
+
+  if (path === 'mercado.html' && (!session || (!session.acesso_mercado && !session.is_admin))) {
+    alert('⛔ Acesso Restrito ao Radar VIP!');
+    window.location.href = 'index.html';
   }
 }
 
@@ -130,8 +138,8 @@ document.addEventListener('DOMContentLoaded', () => {
     return;
   }
 
-  if (paginaAtual === 'admin.html' && (!usuario || !(usuario.is_admin || usuario.role === 'admin'))) {
-    alert('⛔ Acesso Restrito! Apenas o Administrador pode acessar este painel.');
+  if (paginaAtual === 'admin.html' && (!usuario || !usuario.is_admin)) {
+    alert('⛔ Acesso Negado! Área exclusiva do Guild Master.');
     window.location.href = 'index.html';
     return;
   }
@@ -153,7 +161,7 @@ function atualizarNavbar(usuario) {
   `;
 
   if (user.acesso_mercado || user.is_admin || user.role === 'admin') {
-    htmlLinks += `<a href="mercado.html" class="text-amber-400 hover:underline"><i class="fa-solid fa-cart-shopping mr-1"></i> Mercado VIP</a>`;
+    htmlLinks += `<a href="mercado.html" class="text-amber-400 hover:underline"><i class="fa-solid fa-radar mr-1"></i> Radar VIP</a>`;
   }
 
   if (user.is_admin || user.role === 'admin') {

@@ -11,6 +11,8 @@ function getUsuarioLogado() {
   return typeof obterUsuarioLogado === 'function' ? obterUsuarioLogado() : JSON.parse(localStorage.getItem('usuario_logado') || 'null');
 }
 
+const obtainingUser = getUsuarioLogado;
+
 function nickUsuario() {
   return usuarioLogado?.nick || usuarioLogado?.name || 'Visitante';
 }
@@ -92,7 +94,7 @@ function normalizarItem(item) {
 
 async function escanearMercadoMuLotus() {
   const statusBox = document.getElementById('status-scanner-mulotus');
-  if (statusBox) statusBox.innerHTML = '<span class="text-amber-400 animate-pulse"><i class="fa-solid fa-spinner fa-spin mr-1"></i> Varrendo mulotus.net...</span>';
+  if (statusBox) statusBox.innerHTML = '<span class="text-amber-400 animate-pulse"><i class="fa-solid fa-spinner fa-spin mr-1"></i> Escaneando mulotus.net/market/items...</span>';
 
   const urlAlvo = 'https://mulotus.net/market/items';
   const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(urlAlvo)}`;
@@ -168,6 +170,8 @@ async function processarItensCapturadosDoSite(conteudo) {
     verificarMatchEAlerta(item);
   }
 }
+
+const processarItensCapturados = processarItensCapturadosDoSite;
 
 async function buscarItens() {
   if (window.db && typeof window.db.from === 'function') {
@@ -343,7 +347,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('form-favorito')?.addEventListener('submit', criarFavorito);
   document.getElementById('form-radar-desejo')?.addEventListener('submit', criarFavorito);
   document.getElementById('form-postar-item')?.addEventListener('submit', publicarItem);
-  if (window.db && typeof window.db.channel === 'function') window.db.channel('mercado_realtime').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'mercado_itens' }, (payload) => { carregarItensMercadoCards(); verificarMatchEAnalisarPreco(payload.new); }).subscribe();
+  if (window.db && typeof window.db.channel === 'function') window.db.channel('radar_realtime').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'mercado_itens' }, (payload) => { carregarItensMercadoCards(); verificarMatchEAlerta(payload.new); }).subscribe();
   window.solicitarPermissaoNotificacao = solicitarPermissaoNotificacao;
 });
 
